@@ -12,7 +12,7 @@ var minZoomAllowSearch = 10;
 var minZoom = 5;
 var defaultCenter = '20.9947910308838:105.86784362793003'; // hanoi
 var options = {city:'',district:'',ward:'',street:''};
-//var c_city = c_district = null;
+var c_city = c_district = c_ward = null;
 var city = district = ward = street = project = null;
 var utilMarkers = {
     restaurant: {
@@ -1058,6 +1058,12 @@ ProductSearchControler = function(h) {
 
     var context = h.context;
     if (!context.city && !context.currentPID) this.showCitySearch();
+    else if (context.city) {
+        if (!context.district) {
+            c_city = context.city;
+            i.changeCityCallback();
+        }
+    }
 
     if (!this.ProductMap.isDrawing) {
         this._SearchAction(JSON.parse(JSON.stringify(this.formSearch.serializeArray())));
@@ -1083,10 +1089,10 @@ ProductSearchControler.prototype.showCitySearch = function () {
     popup(html);
     $('.popup-content [role="close"]').hide();
     $('.select-city-done').click(function () {
-        var cityy = $('select#city_first').val();
-        if (cityy == 'HN') i.ProductMap.input.center.value = '21.0277644:105.83415979999995';
-        $('select#city').val(cityy);
-        i.changeCityCallback(cityy);
+        c_city = $('select#city_first').val();
+        if (c_city == 'HN') i.ProductMap.input.center.value = '21.0277644:105.83415979999995';
+        $('select#city').val(c_city);
+        i.changeCityCallback();
         remove_popup();
         i.ChangeUrlForNewContext();
         i._SearchAction(JSON.parse(JSON.stringify(i.formSearch.serializeArray())));
@@ -1094,7 +1100,7 @@ ProductSearchControler.prototype.showCitySearch = function () {
     })
 }
 
-ProductSearchControler.prototype.changeCityCallback = function (c_city) {
+ProductSearchControler.prototype.changeCityCallback = function () {
     var f = this.formSearch;
     for (var i = 0; i < cityList.length; i++) {
         if (cityList[i].code == c_city) {
@@ -1112,7 +1118,6 @@ ProductSearchControler.prototype.changeCityCallback = function (c_city) {
             break;
         }
     }
-    console.log(district);
     options.district = '';
     if (district != null && district) {
         for (var i = 0; i < district.length; i++) {
@@ -1125,7 +1130,7 @@ ProductSearchControler.prototype.changeCityCallback = function (c_city) {
     f.find('#street').html('<option value="CN">--Chọn Đường/Phố--</option>');
 }
 
-ProductSearchControler.prototype.changeDistrictCallback = function (c_district) {
+ProductSearchControler.prototype.changeDistrictCallback = function () {
     var f = this.formSearch;
     ward = {};
     street = {};
@@ -1153,7 +1158,7 @@ ProductSearchControler.prototype.changeDistrictCallback = function (c_district) 
     f.find('#street').html('<option value="CN">--Chọn Đường/Phố--</option>');
 }
 
-ProductSearchControler.prototype.changeWardCallback = function (c_ward) {
+ProductSearchControler.prototype.changeWardCallback = function () {
     var f = this.formSearch;
     options.street = '';
     if (street != null && street) {
@@ -1168,13 +1173,16 @@ ProductSearchControler.prototype.catchInputChange = function () {
     var i = this;
     var f = i.formSearch;
     f.find('#city').on('change', function () {
-        i.changeCityCallback($(this).val());
+        c_city = $(this).val();
+        i.changeCityCallback();
     });
     f.find('#district').on('change', function () {
-        i.changeDistrictCallback($(this).val());
+        c_district = $(this).val();
+        i.changeDistrictCallback();
     });
     f.find('#ward').on('change', function () {
-        i.changeWardCallback($(this).val());
+        c_ward = $(this).val();
+        i.changeWardCallback();
     })
 }
 
