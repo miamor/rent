@@ -15,9 +15,8 @@ $config->addJS('dist', 'main.js'); ?>
 
 	<title><?php echo $pageTitle ?></title>
 
+	<link rel="stylesheet" href="<?php echo CSS ?>/font.min.css" type="text/css" media="screen">
 	<link rel="stylesheet" href="<?php echo MAIN_URL ?>/assets/bootstrap/css/bootstrap.min.css" type="text/css" media="screen">
-    <link rel="stylesheet" href="<?php echo CSS ?>/font.min.css" type="text/css" media="screen">
-    <link rel="stylesheet" href="<?php echo PLUGINS ?>/iCheck/all.css" type="text/css" media="screen">
     <link rel="stylesheet" href="<?php echo CSS ?>/custom.css" type="text/css" media="screen">
 
 	<script src="<?php echo MAIN_URL ?>/assets/jquery/jquery-2.2.3.min.js"></script>
@@ -25,7 +24,6 @@ $config->addJS('dist', 'main.js'); ?>
 
 </head>
 <body>
-
     <nav class="navbar navbar-toggleable-md navbar-static-top bg-inverse">
 		<a class="navbar-brand" href="#">Top navbar</a>
 		<div class="collapse navbar-collapse" id="navbarCollapse">
@@ -39,8 +37,14 @@ $config->addJS('dist', 'main.js'); ?>
 				<li class="nav-item">
 					<a class="nav-link disabled" href="#">Disabled</a>
 				</li>
+				<li class="nav-item" id="nav_add">
+					<a class="nav-link" href="#">Đăng tin</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="#">Địa điểm đã đặt</a>
+				</li>
 			</ul>
 		</div>
 	</nav>
 
-    <div class="container">
+    <main class="container">

@@ -3,6 +3,8 @@ if ($n) {
     $pageTitle = 'Place title';
     include 'templates/header.php';
 
+    $config->addJS('plugins', 'DataTables/datatables.min.js');
+    $config->addJS('dist', 'ratings.min.js');
     $config->addJS('dist', $page.'/view.js');
     $config->addJS(-1, 'https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyACkc-PYhlnPUWJaV2GlcCiEcuJujZsMdc&libraries=places&callback=initMap');
 

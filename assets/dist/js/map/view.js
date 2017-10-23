@@ -29,55 +29,52 @@ function initMap() {
     })
 }
 
-var URL = 'http://45.119.82.40:8000/search/node-sell/';
+function getRatings () {
+    $('#place_reviews').DataTable({
+        "ajax": MAIN_URL+'/api/node_one_reviews.php',
+        "columns": [
+            { "data": "avatar_img" },
+            { "data": "content" }
+        ],
+        "lengthMenu": [ 5, 15, 25, 50, 75, 100 ]
+    });
+}
 
-/*var xhr = new XMLHttpRequest();
-xhr.open("GET", URL, true);
-//xhr.setRequestHeader("X-My-Custom-Header", "some value");
-xhr.onload = function () {
-    console.log(xhr.responseText);
-};
-xhr.send();
-*/
 $(function () {
-/*    jQuery.support.cors = true;
-    $.ajax({
-        url: URL,
-        data: { "id":"doc1", "rows":"100" },
-        type: "GET",
-        timeout: 30000,
-        dataType: "jsonp", // "xml", "json"
-        success: function(data) {
-            // show text reply as-is (debug)
-            console.log(data);
+    // get ratings
+    getRatings();
+    rate('#writeReview');
 
-            // show xml field values (debug)
-            //alert( $(data).find("title").text() );
+    $('.place-nav>li>a').click(function () {
+        $('.place-nav>li>a').removeClass('active');
+        $(this).addClass('active');
+        scrolltoDiv($(this).attr('href'));
+        return false
+    })
 
-            // loop JSON array (debug)
-            //var str="";
-            //$.each(data.items, function(i,item) {
-            //  str += item.title + "\n";
-            //});
-            //alert(str);
-        },
-        error: function(jqXHR, textStatus, ex) {
-            console.log(textStatus + "," + ex + "," + jqXHR.responseText);
+    var $ad = $('.place-advertise');
+    var ad_pos = $ad.offset();
+    window.onscroll = function() {
+        if (window.pageYOffset >= ad_pos.top){
+            $ad.addClass('fixed').css({left: ad_pos.left});
+        } else {
+            $ad.removeClass('fixed').css('left','');
         }
-    });
-*/
-    $.ajax({
-        url: URL,
-        type: 'get',
-    //    dataType: 'json',
-        success: function (response) {
-            console.log("Success");
-            console.log(response);
-        },
-        error:function (jqXHR, textStatus, ex) {
-            console.log(jqXHR);
-            console.log(textStatus + " ~ " + ex + " ~ " + jqXHR.responseText);
+        if (window.pageYOffset >= $('#place_map').offset().top - 20) {
+            $('.place-nav li').removeClass('active');
+            $('.place-nav li.place-nav-place_map').addClass('active');
         }
-    });
-
+        if (window.pageYOffset >= $('#info').offset().top - 20) {
+            $('.place-nav li').removeClass('active');
+            $('.place-nav li.place-nav-info').addClass('active');
+        }
+        if (window.pageYOffset >= $('#reviews').offset().top - 20) {
+            $('.place-nav li').removeClass('active');
+            $('.place-nav li.place-nav-reviews').addClass('active');
+        }
+        if (window.pageYOffset >= $('#writeReview').offset().top - 20) {
+            $('.place-nav li').removeClass('active');
+            $('.place-nav li.place-nav-writeReview').addClass('active');
+        }
+    }
 })

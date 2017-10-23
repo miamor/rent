@@ -850,7 +850,8 @@ var cityList = [];
                 $('.map-item-info-type').html(data.type);
                 $('.type-help').attr('title', 'Loại '+data.type+' là gì?');
                 $('.map-item-info-room').html(data.room_left+'/'+data.room);
-                $('.map-item-info-contact_phone').html(data.dienthoai);
+                //$('.map-item-info-contact_phone').html(data.dienthoai);
+                $('.map-item-info-contact_phone').html('<a href="#" id="contact_'+data.id+'">Liên hệ</a>');
                 $('.map-item-info-address').html(data.address);
                 $('.map-item-info-des').html(data.details);
                 $('.map-item-info-thumb').attr('src', data.avatar);
@@ -1242,11 +1243,14 @@ ProductSearchControler.prototype.ShowDetails = function (id) {
         $('.v-place-ratings').html($('.ui_reviews').html());
         popup($('#v-place-view').html(), true);
 
-        $.get(MAIN_URL+'/api/node_one_reviews.php', function (reviews) {
-            $.each(reviews, function (ri, rv) {
-                var rvRates = '<div class="overallBubbleRating"><span class="ui_star_rating star_'+rv.rating+'"></span></div>';
-                $('.v-place-reviews-list').append('<div class="one-review"><img class="one-review-avatar" src="'+rv.avatar+'"/> <h5><a class="one-review-username" href="#">'+rv.name+'</a> '+rvRates+'</h5><div class="one-review-title">'+rv.title+'</div><div class="one-review-details">'+rv.details+'</div></div>');
-            })
+        $.get(MAIN_URL+'/api/node_one_reviews_map.php', function (reviews) {
+            console.log(reviews);
+            if (reviews.length) {
+                $.each(reviews, function (ri, rv) {
+                    var rvRates = '<div class="overallBubbleRating"><span class="ui_star_rating star_'+rv.rating+'"></span></div>';
+                    $('.v-place-reviews-list').append('<div class="one-review"><img class="one-review-avatar" src="'+rv.avatar+'"/> <h5><a class="one-review-username" href="#">'+rv.name+'</a> '+rvRates+'</h5><div class="one-review-title">'+rv.title+'</div><div class="one-review-details">'+rv.details+'</div></div>');
+                })
+            }
         });
 
         i.writeReview(place.id);
@@ -1536,6 +1540,8 @@ var mapContext = {};
 var productControlerObj = null;
 
 $(window).ready(function() {
+    $('.container').height($(window).height());
+
     if (typeof cityListOther1 != 'undefined') cityList = $.merge(cityList, cityListOther1);
     if (typeof cityListOTher2 != 'undefined') cityList = $.merge(cityList, cityListOther2);
     if (typeof cityListOTher3 != 'undefined') cityList = $.merge(cityList, cityListOther3);

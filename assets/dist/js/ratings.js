@@ -1,21 +1,22 @@
 function rate (element) {
+    var rTxt = ['', 'Tệ', 'Không tốt', 'Trung bình', 'Tốt', 'Tuyệt vời'];
 	if (!element) element = 'body';
 	$(element).find(".rating-icons").not(".rated, .myrate").children(".rating-star-icon").hover(function() {
-		a = $(this).attr("id").split("v")[1];
-		for (i = 1; i <= a; i++) {
-			$(element).find(".rating-star-icon.v" + i).css({
-				"background-position": "0 -32px"
-			})
-		}
+        var torate = $(this).closest('.torate');
+		var a = $(this).attr("id").split("v")[1];
+		torate.find('.ui_star_rating').attr('class', 'ui_star_rating star_'+a);
+        torate.next('#ratingFlag').find('em').html(rTxt[a]);
 	}).mouseout(function() {
-		$(element).find(".rating-star-icon").css({
-			"background-position": "0 0"
-		})
+        var torate = $(this).closest('.torate');
+        var crate = $(element).find(".rate-val").val();
+        torate.find('.ui_star_rating').attr('class', 'ui_star_rating star_'+crate);
+        torate.next('#ratingFlag').find('em').html(rTxt[crate]);
 	}).click(function() {
+        var torate = $(this).closest('.torate');
 		a = $(this).attr("id").split("v")[1];
 		$(element).find(".rate-val").val(a);
-		wi = a / 5 * 100;
-		$(element).find(".rate-count").css("width", wi + "%")
+        torate.find('.ui_star_rating').attr('class', 'ui_star_rating star_'+a);
+        torate.next('#ratingFlag').find('em').html(rTxt[a]);
 	});
 	$(element).submit(function() {
 		i = $(this).find(".star-info").attr("data-c");
@@ -26,7 +27,8 @@ function rate (element) {
 		$form = $(this);
 		$form.children('*:visible').hide().addClass('visible hide-to-load');
 		$form.append('<div class="spinner loading-sending"><div></div><div></div><div></div></div>');
-		formData = getFormData($form);
+		//formData = getFormData($form);
+        var formData = $form.serialize();
 		$.ajax({
 			url: url + "?do=rate&rate=" + a,
 			type: "POST",

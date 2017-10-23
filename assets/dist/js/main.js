@@ -28,8 +28,15 @@ function remove_popup () {
 	})
 }
 
+function scrolltoDiv (div) {
+    console.log($(div).offset().top);
+    $('html, body').animate({
+        scrollTop: $(div).offset().top
+    }, 800);
+}
+
 function flatApp () {
-    $('input[type="submit"]').addClass('btn btn-success');
+    $('input[type="submit"]').addClass('btn btn-primary');
 
     //iCheck for checkbox and radio inputs
     /*$('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
@@ -67,5 +74,4 @@ String.prototype.getQueryHash = function (name, defaultVal) {
 
 jQuery(document).ready(function ($) {
     flatApp();
-    $('.container').height($(window).height());
 })
