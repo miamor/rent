@@ -84,6 +84,8 @@ var cityList = [];
         this.listLatlgn = null;
         this.projectOverlay = new Array();
         this.markerCluster = null;
+        this.markerPoint = new google.maps.Marker();
+        this.autocomplete = null;
         this.geocoder = new google.maps.Geocoder();
         this.circle = null;
         this.currentPID = null;
@@ -134,6 +136,8 @@ var cityList = [];
         this.input.product = document.getElementById('product');
         this.input.isShowUtil = document.getElementById('isShowUtil');
         this.input.details = document.getElementById('details');
+        this.input.location = document.getElementById('location');
+        this.input.location_radius = document.getElementById('location_radius');
 
         this.setContext = function(a, b, c) {
             if (a != undefined && a != '') {
@@ -176,6 +180,8 @@ var cityList = [];
             if (s.direction) this.input.direction.value = s.direction;
             if (s.price) this.input.price.value = s.price;
             if (s.area) this.input.area.value = s.area;
+            if (s.location) this.input.location.value = s.location;
+            if (s.location_radius) this.input.location_radius.value = s.location_radius;
             if (s.details == 1) {
                 this.input.details.value = 1;
                 this.isDetails = true;
@@ -256,6 +262,26 @@ var cityList = [];
             //this.map.controls[google.maps.ControlPosition.BOTTOM].push(document.getElementById('controlUtility'));
             $('#controlArea,#controlUtility').show();
 
+            var input = document.getElementById('location');
+            var options = {
+                //types: ['(cities)'],
+                componentRestrictions: {country: 'vn'}
+            };
+            this.markerPoint.setMap($thismap.map);
+            this.markerPoint.setVisible(false);
+
+            this.autocomplete = new google.maps.places.Autocomplete(input, options);
+            this.autocomplete.bindTo('bounds', this.map);
+
+            this.autocomplete.addListener('place_changed', function() {
+                var place = $thismap.autocomplete.getPlace();
+                $thismap.searchByLocation(place);
+            });
+            if (s.location) {
+                var place = this.geocodeAddress();
+                $thismap.searchByLocation(place);
+            }
+
             var locationData = null;
             if (this.listLatlgn != null) {
                 this.polyline = new google.maps.Polygon({
@@ -269,7 +295,72 @@ var cityList = [];
                 this.polyline.setMap(this.map);
                 this.findPoint(this.polyline);
             }
-        };
+        }
+
+        this.searchByLocationID = function geocodePlaceId () {
+            var placeId = this.input.location.value;
+            this.geocoder.geocode({'placeId': placeId}, function (results, status) {
+                if (status === 'OK') {
+                    if (results[0]) {
+                        /*$thismap.map.setZoom(zoom_moderate);
+                        $thismap.map.setCenter(results[0].geometry.location);
+                        $thismap.markerPoint.setPosition(results[0].geometry.location);
+                        */
+                        //infowindow.setContent(results[0].formatted_address);
+                        //infowindow.open(map, marker);
+                    } else {
+                        console.log('No results found');
+                        return false;
+                    }
+                } else {
+                    console.log('Geocoder failed due to: ' + status);
+                    return false;
+                }
+            });
+        }
+
+        this.geocodeAddress = function () {
+            var address = this.input.location.value;
+            $thismap.geocoder.geocode({'address': address}, function(results, status) {
+                if (status === 'OK') {
+                    //$thismap.map.setCenter(results[0].geometry.location);
+                    return results[0]
+                } else {
+                    return false;
+                }
+            });
+        }
+
+        this.searchByLocation = function (place) {
+            if (place) {
+                $thismap.markerPoint.setVisible(false);
+                if (!place.geometry) {
+                    window.alert("No details available for input: '" + place.name + "'");
+                    return;
+                }
+                if (place.geometry.viewport) {
+                    $thismap.map.fitBounds(place.geometry.viewport);
+                } else {
+                    $thismap.map.setCenter(place.geometry.location);
+                    $thismap.map.setZoom(zoom_moderate);
+                }
+                $thismap.markerPoint.setPosition(place.geometry.location);
+                $thismap.markerPoint.setVisible(true);
+                console.log(place);
+
+                var circleAroundPoint = new google.maps.Circle({
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.5,
+                    strokeWeight: 2,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.15,
+                    map: $thismap.map,
+                    center: place.geometry.location,
+                    radius: $thismap.input.location_radius.value
+                });
+                if (place.geometry.location != this.input.location.value) productControlerObj.ChangeUrlForNewContext();
+            }
+        }
 
         this.resize = function () {
             google.maps.event.trigger($thismap.map, 'resize');
@@ -684,6 +775,8 @@ var cityList = [];
         };
         this.ClearUtilitiesAroundCallback = function() {};
         this.ClearUtilitiesAroundPoint = function(a) {
+            this.input.isShowUtil.value = 0;
+            this.isShowUtil = false;
             if (this.circle != null) this.circle.setMap(null);
             if (this.markerUtilities != null && this.markerUtilities.length > 0) {
                 for (var i = 0; i < this.markerUtilities.length; i++) {
@@ -727,13 +820,12 @@ var cityList = [];
         };
 
         this.closeInfoWindowCallBack = function (h) {
-            if (!this.isShowUtil) {
-                h.setIcon(iconMarker.default);
-                this.input.product.value = this.currentPID = '';
-                this.map.setZoom(zoom_moderate);
-                this.map.setCenter(this.centerPos);
-                productControlerObj.ChangeUrlForNewContext();
-            }
+            h.setIcon(iconMarker.default);
+            this.input.product.value = this.currentPID = '';
+            this.map.setZoom(zoom_moderate);
+            this.map.setCenter(this.centerPos);
+            this.ClearUtilitiesAroundPoint();
+            productControlerObj.ChangeUrlForNewContext();
         };
 
         this.showInfoTipWindow = function (h, k) {
@@ -866,14 +958,14 @@ var cityList = [];
                 });
 
                 this.infoWindow.open(this.map, h);*/
-                $('.map-item-info-board,.ui_reviews').show();
+                $('.map-item-info-board').animate({top:$('#map-search-form').height()}, 400);
 
                 this.ShowRatings(data);
 
                 this.gotoReviews('.map-item-ratings', data.id);
 
                 $('.map-item-info-board-close').click(function () {
-                    $('.map-item-info-board,.ui_reviews').hide();
+                    $('.map-item-info-board').animate({top:'100%'}, 400);
                     $thismap.closeInfoWindowCallBack(h);
                 })
 
@@ -910,9 +1002,21 @@ var cityList = [];
                 $chartRow.find('.fill').css('width', per+'%');
                 $chartRow.find('.row_count').html(per+'%');
             }
-            /*$.get(MAIN_URL+'/api/node_reviews.php', function () {
 
-            })*/
+            if (!$('.map-item-reviews-list').find('.map-item-review').length) {
+                $.get(MAIN_URL+'/api/node_one_reviews_map.php', function (reviews) {
+                    console.log(reviews);
+                    if (reviews.length) {
+                        $.each(reviews, function (ri, rv) {
+                            var rvRates = '<div class="overallBubbleRating"><span class="ui_star_rating star_'+rv.rating+'"></span></div>';
+                            $('.v-place-reviews-list').append('<div class="one-review"><img class="one-review-avatar" src="'+rv.avatar+'"/> <h5><a class="one-review-username" href="#">'+rv.name+'</a> '+rvRates+'</h5><div class="one-review-title">'+rv.title+'</div><div class="one-review-details">'+rv.details+'</div></div>');
+
+                            var rvRates_sm = '<div class="overallBubbleRating left"><span class="ui_bubble_rating bubble_'+rv.rating+'"></span></div>';
+                            $('.map-item-reviews-list').append('<div class="map-item-review"><img title="'+rv.name+'" class="map-item-review-avatar" src="'+rv.avatar+'"/> <div class="map-item-review-details">'+rvRates_sm+' '+rv.details.substring(0,100)+'</div></div>');
+                        })
+                    }
+                });
+            }
         }
 
         return this
@@ -940,6 +1044,7 @@ var cityList = [];
             productControlerObj.ChangeUrlForNewContext();
 
             a.data.Map.ClearUtilitiesAroundPoint(false);
+            $('.map-item-reviews-list').show();
             a.data.Map.showInfoWindow()
         });
         $(this).find('select, input').bind('change', this, function(a) {
@@ -1011,10 +1116,12 @@ var cityList = [];
 
         };
         this.Map.ClearUtilitiesAroundCallback = function() {
-            $utilthis.hide()
+            $utilthis.hide();
+            $('.map-item-reviews-list').show();
         };
         this.Map.ShowUtilitiesAroundCallback = function() {
-            $utilthis.show()
+            $utilthis.show();
+            $('.map-item-reviews-list').hide();
         };
         return this
     };
@@ -1243,16 +1350,6 @@ ProductSearchControler.prototype.ShowDetails = function (id) {
         $('.v-place-ratings').html($('.ui_reviews').html());
         popup($('#v-place-view').html(), true);
 
-        $.get(MAIN_URL+'/api/node_one_reviews_map.php', function (reviews) {
-            console.log(reviews);
-            if (reviews.length) {
-                $.each(reviews, function (ri, rv) {
-                    var rvRates = '<div class="overallBubbleRating"><span class="ui_star_rating star_'+rv.rating+'"></span></div>';
-                    $('.v-place-reviews-list').append('<div class="one-review"><img class="one-review-avatar" src="'+rv.avatar+'"/> <h5><a class="one-review-username" href="#">'+rv.name+'</a> '+rvRates+'</h5><div class="one-review-title">'+rv.title+'</div><div class="one-review-details">'+rv.details+'</div></div>');
-                })
-            }
-        });
-
         i.writeReview(place.id);
 
         $('.popup-content [role="close"]').show();
@@ -1390,6 +1487,8 @@ ProductSearchControler.prototype.ChangeUrlForNewContext = function(e) {
     a += "&ward=" + ($input.ward.value != undefined ? $input.ward.value : '');
     a += "&street=" + ($input.street.value != undefined ? $input.street.value : '');
     a += "&direction=" + ($input.direction.value != undefined ? $input.direction.value : '');
+    a += "&location=" + ($input.location.value != undefined ? $input.location.value : '');
+    a += "&location_radius=" + ($input.location_radius.value != undefined ? $input.location_radius.value : '');
     a += "&points=" + (this.ProductMap.isDrawing ? ($input.points.value != undefined ? $input.points.value : '') : '');
     a += "&zoom=" + this.ProductMap.getZoom();
     a += "&center=" + this.ProductMap.getCenter();
@@ -1410,45 +1509,32 @@ ResponsiveSidebar = function () {
         var b = false;
         if (oldWidth > $(window).width() || oldHeight > $(window).height()) b = true;
         var currentlyHide = true;
-        if ($('.map-side').css('left') == '10px') { // is currently show
+        if ($('.map-side').css('left') == '0px') { // is currently show
             if ($(window).width() < 1200) currentlyHide = false;
         }
         res.render(b, !currentlyHide);
-        res.checkRightSide();
-        //productControlerObj.ProductMap.resize();
-    });
-    $('.controls-utility-toggle').click(function () {
-        res.toggleUtilityBoard();
+        productControlerObj.ProductMap.resize();
     });
     $('.map-side-toggle').click(function () {
         var currentlyHide = true;
-        if ($('.map-side').css('left') == '10px') currentlyHide = false; // is show
+        if ($('.map-side').css('left') == '0px') currentlyHide = false; // is show
         res.render(false, !currentlyHide);
-        //productControlerObj.ProductMap.resize();
+        productControlerObj.ProductMap.resize();
     });
 }
 ResponsiveSidebar.prototype.initialize = function () {
     var cHide = false;
     if ($(window).width() < 1200) cHide = true;
     this.render(false, cHide);
-    this.checkRightSide();
 }
 ResponsiveSidebar.prototype.render = function (isResizeSmaller = false, hideMapSide = false) {
     var w = $(window).width();
     var h = $(window).height();
 
-    var mapSideWidth = $('.map-side').width();
+    var mapSideWidth = '40%';
 
-    if (w <= 360) {
-        mapSideWidth = w-20;
-        var cl = '';
-        if ($('#controlUtility').css('right') == '10px') cl = ', #controlUtility';
-        $('.map-side, .ui_reviews '+cl+', .map-item-info-board').animate({
-            width: mapSideWidth,
-            left: 10,
-            right: 10
-        }, 100);
-    }
+    if (w <= 900) mapSideWidth = 500;
+    if (w <= 360) mapSideWidth = w;
 
     $('.map-side .tab-content').height($('.map-side').height() - $('.map-side>ul.nav').height());
 
@@ -1460,18 +1546,36 @@ ResponsiveSidebar.prototype.render = function (isResizeSmaller = false, hideMapS
         h = h + 12;
     }
 
+    $('#map_results').css('top',$('#map-search-form').height());
+    $('.map-side').css({width: mapSideWidth});
+
     if (hideMapSide) { // hide sidebar
         $('.map-side-toggle').html('<i class="fa fa-angle-double-right"></i>');
-        $('.map-side').animate({'left': -mapSideWidth }, 100);
-        $('#map').css({height: h - $('nav.navbar').height() });
+        $('.map-side').animate({left: -mapSideWidth }, 100);
+        $('#map').css({
+            height: h - $('nav.navbar').height(),
+            left: 0
+        }, 100);
     } else {
         $('.map-side-toggle').html('<i class="fa fa-angle-double-left"></i>');
-        $('.map-side').animate({'left': 10}, 100);
-        $('#map').css({height: h - $('nav.navbar').height() });
+        $('.map-side').animate({left: 0 }, 100);
+        $('#map').css({
+            height: h - $('nav.navbar').height(),
+            left: $('.map-side').width()
+        }, 100);
+    }
+
+    $('.map-filters').width($('.map-search-form>div:eq(0)').width()-22);
+
+    if (w <= 900) {
+        $('.map-item-col>div').css({
+            width: '100%',
+            float: 'none'
+        })
     }
 
     if (w <= 360) {
-        if ($('.map-side').css('left') == '10px') {
+        if ($('.map-side').css('left') == '0px') {
             $('.map-side-toggle').css({
                 top: 10,
                 right: -30
@@ -1483,55 +1587,10 @@ ResponsiveSidebar.prototype.render = function (isResizeSmaller = false, hideMapS
             })
         }
     }
-}
-ResponsiveSidebar.prototype.checkRightSide = function () {
-    $ratings = $('.ui_reviews');
-    if ($(window).width() <= 360) this.utilToggleBtn(true);
-    if ($(window).height() < 500 || $(window).width() < 900) { // hide
-        $('.ui_reviews').animate({'height':53}, 100).css('cursor', 'pointer');
-        $('#controlUtility .utility-head').css('cursor', 'pointer');
-    } else {
-        $('.controls-utility-toggle').html('<i class="fa fa-angle-double-right"></i>');
-        $('#controlUtility').css({'height':'auto', 'overflow':'visible'});
-        $('#controlUtility .utility-head').css('cursor', 'default');
-        if ($ratings.is(':visible')) {
-            $ratings.attr('style', '');
-            $ratings.show();
-        } else $ratings.attr('style', '');
-    }
-    $('.ui_reviews, #controlUtility .utility-head').click(function () {
-        if ($(window).height() < 500 || $(window).width() < 900) {
-            if ($ratings.css('height') != '53px' || $ratings.is(':visible') == false) { // currently hide
-                $ratings.css('height', 53);
-                $('#controlUtility').css({'height':'auto', 'overflow':'visible'});
-            } else {
-                $ratings.css('height', 'auto');
-                $('#controlUtility').css('overflow','hidden').animate({height: 41 }, 100);
-            }
-        }
-    });
-}
-ResponsiveSidebar.prototype.toggleUtilityBoard = function () {
-    if (parseFloat($('#controlUtility').css('right')) >= 0) { // currently show
-        $('.controls-utility-toggle').html('<i class="fa fa-angle-double-left"></i>');
-        $('#controlUtility').css('left', '').animate({right:-$('#controlUtility').width()-21}, 100)
-    } else {
-        $('.controls-utility-toggle').html('<i class="fa fa-angle-double-right"></i>');
-        $('#controlUtility').animate({right: 10}, 100)
-    }
-    this.utilToggleBtn();
-}
-ResponsiveSidebar.prototype.utilToggleBtn = function (b = false) {
-    if ($(window).width() <= 360) {
-        console.log(parseFloat($('#controlUtility').css('right')));
-        if (parseFloat($('#controlUtility').css('right')) < 0 || b) {
-            $('.controls-utility-toggle').css({top:4,left:0,'box-shadow':'none'});
-            $('.utility-head').css('padding-left', 20)
-        } else {
-            $('.controls-utility-toggle').css({top:10,left:-30,'box-shadow':'0 1px 2px 0 rgba(0,0,0,.12)'});
-            $('.utility-head').css('padding-left', 0)
-        }
-    }
+    else $('.map-side-toggle').css({
+        top: 10,
+        right: -30
+    })
 }
 
 
@@ -1566,6 +1625,8 @@ $(window).ready(function() {
             currentPID: markContext.getQueryHash('product'),
             isShowUtil: markContext.getQueryHash('isShowUtil'),
             details: markContext.getQueryHash('details'),
+            location: markContext.getQueryHash('location'),
+            location_radius: markContext.getQueryHash('location_radius')
         };
     }
     // Fix content from product list linking
@@ -1583,4 +1644,18 @@ $(window).ready(function() {
         context: mapContext
     });
     responsiveDesign = new ResponsiveSidebar();
+
+    $('.map-filters').width($('.map-search-form>div:eq(0)').width()-22);
+    $('#location').click(function () {
+        $('.map-filters').show()
+    });
+
+    $(document).mouseup(function (e) {
+        var container = $(".map-filters,#location");
+
+        // if the target of the click isn't the container nor a descendant of the container
+        if (!container.is(e.target) && container.has(e.target).length === 0) {
+            $('.map-filters').hide();
+        }
+    });
 })

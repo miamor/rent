@@ -2,7 +2,7 @@
 header('content-type: application/json');
 
 $data = array();
-for ($i = 0; $i < 5; $i++) {
+for ($i = 0; $i < 6; $i++) {
     $data[] = array(
         'avatar' => 'node_'.$i,
         'content' => 'node_'.$i,

@@ -22,14 +22,14 @@
         <div class="clearfix"></div>
     </div>
     <div class="form-group">
-        <div class="col-md-3 no-padding">Tiêu đề </div>
+        <div class="col-md-3 no-padding control-label">Tiêu đề </div>
         <div class="col-md-9 no-padding">
             <input type="text" class="form-control" name="r_title"/>
         </div>
         <div class="clearfix"></div>
     </div>
     <div class="form-group">
-        <div class="col-md-3 no-padding">Nội dung </div>
+        <div class="col-md-3 no-padding control-label">Nội dung </div>
         <div class="col-md-9 no-padding">
             <textarea class="form-control" name="r_content"></textarea>
         </div>
