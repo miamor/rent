@@ -412,7 +412,10 @@ label.utility-type .uti-total{font-weight: 500}
 }
 #controlArea .delshape{display: none}
 
-.map-search-form{position:relative;padding:20px;border-bottom:1px solid #e7e7e7;background:#f5f5f5}
+#map-search-form{position:relative;z-index:6;background:#f5f5f5}
+#map-search-form.active{z-index:16;background:#fff;box-shadow:0 8px 8px -8px rgba(0,0,0,.95)}
+.map-item-info-board.disabled:before,#map_results.disabled:before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;z-index:15;background:rgba(0,0,0,.65)}
+.map-search-form{position:relative;padding:20px}
 .map-search-form input, .map-search-form select{height:40px!important}
 .map-search-form select{background-color:#f9f9f9!important;margin-left:-1px}
 .map-filters{position: absolute;left:20px;top:60px;margin-top:-1px;background:#fff;border:1px solid #e7e7e7;padding:10px;z-index:5}
@@ -421,6 +424,7 @@ label.utility-type .uti-total{font-weight: 500}
 .map-side #map_results{
     position:absolute;
     overflow: auto;
+    border-top:1px solid #e7e7e7;
     top:40px;
     left:0;right:0;bottom:0
 }
@@ -465,10 +469,8 @@ label.utility-type .uti-total{font-weight: 500}
     overflow:auto;
     padding:12px 10px;
     background:#fff;
-    *border:1px solid #eee;
-    margin-top:-1px;
-    box-shadow: 0 -8px 8px -8px rgba(0,0,0,.15);
     z-index:12;
+    box-shadow: 0 -8px 8px -8px rgba(0,0,0,.15);
     font-weight:300
 }
 .map-item-info-board-close{position: absolute;z-index:10;right:10px;top:8px;cursor:pointer;margin-left:10px;font-size:21px}

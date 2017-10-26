@@ -347,27 +347,27 @@
                         </div>
                         <div class="utility-body">
                             <label class="utility-type" for="chk1" title="Địa điểm ăn uống">
-                                <input type="checkbox" id="chk1" value="1" />
+                                <input type="checkbox" id="chk1" value="1" checked="checked" />
                                 Ăn uống
                             </label>
                             <label class="utility-type" for="chk2" title="Trung tâm thể thao, giải trí">
-                                <input type="checkbox" class="minimal" checked="checked" id="chk2" value="2" />
+                                <input type="checkbox" checked="checked" id="chk2" value="2" />
                                 Giải trí
                             </label>
                             <label class="utility-type" for="chk3" title="Địa điểm mua sắm">
-                                <input type="checkbox" class="minimal" checked="checked" id="chk3" value="3" />
+                                <input type="checkbox" id="chk3" value="3" />
                                 Mua sắm
                             </label>
                             <label class="utility-type" for="chk4" title="Bến xe, trạm xe">
-                                <input type="checkbox" id="chk4" value="4" />
+                                <input type="checkbox" checked="checked" id="chk4" value="4" />
                                 Bến xe
                             </label>
                             <label class="utility-type" for="chk5" title="Cơ sở y tế">
-                                <input type="checkbox" id="chk5" value="5" />
+                                <input type="checkbox" checked="checked" id="chk5" value="5" />
                                 Cơ sở y tế
                             </label>
                             <label class="utility-type" for="chk6" title="Trường học">
-                                <input type="checkbox" class="minimal" checked="checked" id="chk6" value="6" />
+                                <input type="checkbox" checked="checked" id="chk6" value="6" />
                                 Trường học
                             </label>
                             <label class="utility-type" for="chk7" title="Khách sạn">

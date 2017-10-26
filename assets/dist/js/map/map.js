@@ -165,7 +165,7 @@ var cityList = [];
                     iwBackground.removeClass('gw-style-bg').addClass('gw-style-bg');
                     //iwBackground.children(':nth-child(2),:nth-child(4)').css('height','250px!important');
                 } else {
-                    console.log('tip');
+                    //console.log('tip');
                     iwOuter.parent().addClass('gw-tip-parent');
                     var iwBackground = iwOuter.prev();
                     iwBackground.removeClass('gw-style-bg').addClass('gw-tip-bg')
@@ -349,7 +349,7 @@ var cityList = [];
                 }
                 $thismap.markerPoint.setPosition(place.geometry.location);
                 $thismap.markerPoint.setVisible(true);
-                console.log(place);
+                //console.log(place);
 
                 var circleAroundPoint = new google.maps.Circle({
                     strokeColor: '#FF0000',
@@ -653,7 +653,7 @@ var cityList = [];
                 imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
             });
 
-            this.ShowUtilitiesAll();
+            if (!this.isShowUtil) this.ShowUtilitiesAll();
         };
 
         this.findDataInfo = function(i) {
@@ -686,7 +686,7 @@ var cityList = [];
 
         this.ShowUtilitiesAll = function () {
             $.ajax({
-                url: MAIN_URL+'/api/hanoi.php',
+                url: API_URL+'/utilities',
                 type: 'get',
                 success: function(data) {
                     $thismap.dataUtilities = data
@@ -701,7 +701,7 @@ var cityList = [];
         this.displayUtilitiesMarkers = function () {
             if (this.dataUtilities != null && this.dataUtilities) {
                 this.markerUtilities = this.dataUtilities.map(function(utility, i) {
-                    console.log(utility);
+                    //console.log(utility);
                     if (utility.AvgRating > 8) {
                         return new MarkerWithLabel({
                             position: new google.maps.LatLng(utility.latitude, utility.longitude),
@@ -731,7 +731,7 @@ var cityList = [];
                         var j = $thismap.dataUtilities[i];
                         var k = '';
                         k += '<div class="infowindow-util-preview iw-content">';
-                        k += '<div class="bold infowindow-util-preview-title">' + j.Name + '</div>';
+                        k += '<div class="bold infowindow-util-preview-title">' + j.title + '</div>';
                         k += '<div class="infowindow-util-preview-adr"><i class="fa fa-map-marker"></i> <span>' + j.address + '</span></div>';
                         //k += '<div class="infowindow-util-preview-type">Loại tiện ích: ' + j.type + '</div>';
                         //k += '<div class="infowindow-util-preview-typeid">Typeid: ' + j.typeid + '</div>';
@@ -1121,7 +1121,7 @@ var cityList = [];
                 k.v = new Date().getTime();
 
                 $.ajax({
-                    url: MAIN_URL+'/api/hanoi.php',
+                    url: API_URL+'/utilities',
                     data: k,
                     type: 'get',
                     success: function(a, b, c) {
@@ -1130,6 +1130,8 @@ var cityList = [];
                         for (key = 0; key < a.length; key++) {
                             var vl = a[key];
                             if (l.indexOf(vl.typeid) !== -1) {
+                                vl.AvgRatingText = vl.AvgRating;
+                                vl.AvgRating = parseFloat(vl.AvgRating);
                                 data.push(vl);
                             }
                         }
@@ -1150,9 +1152,9 @@ var cityList = [];
             }
         };
         this.Map.ShowUtilitiesAroundCallback = function() {
-            console.log($utilthis.width());
+            //console.log($utilthis.width());
             if (this.isShowUtil) {
-                console.log(this.isShowUtil);
+                //console.log(this.isShowUtil);
                 setTimeout(function () {
                     $utilthis.show().animate({width:'100%'}, 200);
                 }, 200)
@@ -1345,6 +1347,7 @@ ProductSearchControler.prototype.ShowMoreInfoAndHidePopup = function (id, lat, l
 ProductSearchControler.prototype.ShowMoreInfo = function (id, lat, lon, isInit = true) {
     if (this.ProductMap.map.getZoom() < zoom_utilityView)
         this.ProductMap.map.setZoom(zoom_utilityView);
+    console.log(this.ProductMap.isShowUtil);
     if (!this.ProductMap.isShowUtil || isInit) {
         this.utilityTool.ResetRadius();
         this.utilityTool.SearchAction(lat, lon);
@@ -1359,7 +1362,7 @@ ProductSearchControler.prototype.ShowDetails = function (id) {
         i.ChangeUrlForNewContext();
     }
     $.get(MAIN_URL+'/api/node_one.php', function (place) {
-        console.log(place);
+        //console.log(place);
         place.room_left = parseInt(place.room) - parseInt(place.room_taken);
         $('.v-place-room_left_num').html(place.room_left+'/'+place.room);
         $('.v-place-pricenum').html(place.price);
@@ -1666,16 +1669,18 @@ $(window).ready(function() {
     responsiveDesign = new ResponsiveSidebar();
 
     $('.map-filters').width($('.map-search-form>div:eq(0)').width()-22);
-    $('#location').click(function () {
-        $('.map-filters').show()
-    });
 
     $(document).mouseup(function (e) {
-        var container = $(".map-filters,#location");
-
+        var container = $(".map-filters,#location,#map-search-form");
         // if the target of the click isn't the container nor a descendant of the container
         if (!container.is(e.target) && container.has(e.target).length === 0) {
+            $('#map-search-form').removeClass('active');
+            $('.map-item-info-board,#map_results').removeClass('disabled');
             $('.map-filters').hide();
+        } else {
+            $('#map-search-form').addClass('active');
+            $('.map-item-info-board,#map_results').addClass('disabled');
+            $('.map-filters').show()
         }
     });
 })
