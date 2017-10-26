@@ -261,6 +261,12 @@ var cityList = [];
                 }
             };
             this.map = new google.maps.Map(document.getElementById(v), k);
+
+            var styles = [{"featureType":"administrative","elementType":"geometry","stylers":[{"visibility":"off"}]},{"featureType":"poi","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","stylers":[{"visibility":"off"}]}];
+            var styledMap = new google.maps.StyledMapType(styles, {name: "Styled Map"});
+            this.map.mapTypes.set('styled_map', styledMap);
+            this.map.setMapTypeId('styled_map');
+
             this.map.controls[google.maps.ControlPosition.LEFT_TOP].push(document.getElementById('controlArea'));
             //this.map.controls[google.maps.ControlPosition.BOTTOM].push(document.getElementById('controlUtility'));
             $('#controlArea').show();
@@ -702,11 +708,11 @@ var cityList = [];
             if (this.dataUtilities != null && this.dataUtilities) {
                 this.markerUtilities = this.dataUtilities.map(function(utility, i) {
                     //console.log(utility);
-                    if (utility.AvgRating > 8) {
+                    if (parseFloat(utility.AvgRating) > 8) {
                         return new MarkerWithLabel({
                             position: new google.maps.LatLng(utility.latitude, utility.longitude),
                             icon: utilMarkers[utility.type].default,
-                            labelContent: utility.AvgRatingText,
+                            labelContent: utility.AvgRating,
                             labelAnchor: new google.maps.Point(13,11),
                             labelClass: "marker-utility-label", // your desired CSS class
                             labelInBackground: true
@@ -736,7 +742,7 @@ var cityList = [];
                         //k += '<div class="infowindow-util-preview-type">Loại tiện ích: ' + j.type + '</div>';
                         //k += '<div class="infowindow-util-preview-typeid">Typeid: ' + j.typeid + '</div>';
                         //k += '<div class="infowindow-util-preview-distance">Khoảng cách: ' + j.distance + 'm</div>';
-                        k += '<div class="infowindow-util-preview-ratings"><i class="fa fa-star"></i> Điểm foody: <span>' + j.AvgRatingText + '</span></div>';
+                        k += '<div class="infowindow-util-preview-ratings"><i class="fa fa-star"></i> Điểm foody: <span>' + j.AvgRating + '</span></div>';
                         k += '</div>';
 
                         $thismap.infoWindow.setOptions({
@@ -1018,16 +1024,19 @@ var cityList = [];
             $('#overallRating').html(data.rating);
             $('.overallBubbleRating .ui_star_rating').addClass('star_'+data.rating.toString().replace('.', ''));
             $('#totalReviews').html(data.reviews);
-            var reviewsSta = data.reviews_details.split('|');
-            for (i = 1; i <= 5; i++) {
-                var votes = reviewsSta[i-1].split(':')[1];
-                var per = (votes/data.reviews*100).toFixed(2);
-                $chartRow = $('.chart_row[data-idx="'+i+'"]');
-                $chartRow.attr('title', votes+' đánh giá - '+per+'%');
-                $chartRow.find('.fill').css('width', per+'%');
-                $chartRow.find('.row_count').html(per+'%');
+            if (data.reviews_details) {
+                var reviewsSta = data.reviews_details.split('|');
+                for (i = 1; i <= 5; i++) {
+                    var votes = reviewsSta[i-1].split(':')[1];
+                    var per = (votes/data.reviews*100).toFixed(2);
+                    $chartRow = $('.chart_row[data-idx="'+i+'"]');
+                    $chartRow.attr('title', votes+' đánh giá - '+per+'%');
+                    $chartRow.find('.fill').css('width', per+'%');
+                    $chartRow.find('.row_count').html(per+'%');
+                }
             }
 
+            // get reviews
             if (!$('.map-item-reviews-list').find('.map-item-review').length) {
                 $.get(MAIN_URL+'/api/node_one_reviews_map.php', function (reviews) {
                     //console.log(reviews);
@@ -1130,8 +1139,6 @@ var cityList = [];
                         for (key = 0; key < a.length; key++) {
                             var vl = a[key];
                             if (l.indexOf(vl.typeid) !== -1) {
-                                vl.AvgRatingText = vl.AvgRating;
-                                vl.AvgRating = parseFloat(vl.AvgRating);
                                 data.push(vl);
                             }
                         }
@@ -1416,7 +1423,7 @@ ProductSearchControler.prototype._SearchAction = function(d) {
     this.searchVar = d;
     var f = this;
     $.ajax({
-        url: MAIN_URL+'/api/node.php',
+        url: API_URL+'/nodes',
         type: 'get',
         success: function(data) {
             // show on map
@@ -1433,11 +1440,13 @@ ProductSearchControler.prototype._SearchAction = function(d) {
 ProductSearchControler.prototype.showList = function (d) {
     var f = this;
     f.mapResults.html('');
-    $.each(d, function (i, v) {
+    //$.each(d, function (i, v) {
+    for (i = 0; i < 10; i++) {
+        v = d[i];
         k = '<div attr-id="'+v.id+'" attr-marker-id="'+i+'" class="map-result-one">';
         k += '<div class="map-result-one-left no-padding">'
         k += '<img class="map-result-one-thumb" src="'+v.avatar+'">';
-        k += '<div class="map-result-one-price"><i class="fa fa-dollar"></i><span>'+v.price+'</span></div>';
+        k += '<div class="map-result-one-price"><i class="fa fa-dollar"></i><span>'+v.price.replace('/tháng','')+'</span></div>';
         k += '</div>';
         k += '<div class="map-result-one-info">'
         k += '<h3 class="map-result-one-title">'+v.title+'</h3>';
@@ -1452,7 +1461,8 @@ ProductSearchControler.prototype.showList = function (d) {
         k += '<div class="clearfix"></div>';
         k += '</div>';
         f.mapResults.append(k);
-    });
+    }
+    //});
     $('.map-result-one').each(function () {
         $(this).mouseenter(function () {
             f.ProductMap.mouseHover($(this).attr('attr-marker-id'));

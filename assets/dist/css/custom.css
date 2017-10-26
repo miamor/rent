@@ -412,8 +412,8 @@ label.utility-type .uti-total{font-weight: 500}
 }
 #controlArea .delshape{display: none}
 
-#map-search-form{position:relative;z-index:6;background:#f5f5f5}
-#map-search-form.active{z-index:16;background:#fff;box-shadow:0 8px 8px -8px rgba(0,0,0,.95)}
+#map-search-form{position:relative;z-index:6;background:#f5f5f5;opacity:.45}
+#map-search-form.active{z-index:16;background:#fff;box-shadow:0 8px 8px -8px rgba(0,0,0,.95);opacity:1}
 .map-item-info-board.disabled:before,#map_results.disabled:before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;z-index:15;background:rgba(0,0,0,.65)}
 .map-search-form{position:relative;padding:20px}
 .map-search-form input, .map-search-form select{height:40px!important}
@@ -627,7 +627,7 @@ select#city_first:focus{background:#fff!important}
 .ui_reviews{position:relative;margin:10px 0}
 .map-item-reviews-list{position:relative;margin:14px 0;padding-right:8px;text-align:justify}
 .map-item-review{position:relative;height:51px;margin:3px 0 6px}
-.map-item-review-avatar{position:absolute;left:0;top:3px;width:46px;height:46px;border-radius:5px}
+.map-item-review-avatar{position:absolute;left:0;top:4px;width:45px;height:45px;border-radius:5px}
 .map-item-review-details{font-size:12px;line-height:17px;position:absolute;left:52px;right:0;height:51px;overflow:hidden}
 .map-item-review-username,.map-item-review .overallBubbleRating{margin-right:3px}
 

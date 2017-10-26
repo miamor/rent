@@ -12,15 +12,18 @@ var toSave = [];
 
 function append (data) {
     toSave.push(data);
-    $('body').append(data+',');
+    //$('body').append(data+',');
 }
 
+//MAIN_URL+'/utility_api/'+district+'.json',
+var utiFile = MAIN_URL+'/utility_api/dongda.json';
+
 $(document).ready(function () {
-    for (l = 0; l < districts.length; l++) {
-        district = districts[l];
-        $.get(MAIN_URL+'/utility_api/'+district+'.json', function (data) {
+    //for (l = 0; l < districts.length; l++) {
+    //    district = districts[l];
+        $.get(utiFile, function (data) {
             data = JSON.parse(data);
-            toSave[district] = {};
+            //toSave[district] = {};
             var string = '';
             $.each(data, function (i, v) {
                 var f = {};
@@ -39,13 +42,14 @@ $(document).ready(function () {
                 f.city = v.Location;
                 f.type = 'restaurant';
                 f.typeid = 1;
-                //toSave.push(JSON.stringify(f));
-                append(JSON.stringify(f));
+                toSave.push(f);
+                //append(JSON.stringify(f));
             });
+            $('body').html(JSON.stringify(toSave));
             //console.log(data);
             //download(toSave, district+'.json', 'application/json');
         })
-    }
+    //}
     console.log(toSave);
     //$('body').append(toSave.join(','));
 })
