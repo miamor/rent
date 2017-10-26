@@ -2,30 +2,6 @@
 
 <div class="nav-tabs-custom map-side no-padding">
     <div class="map-side-toggle"></div>
-    <div class="btn-map-update-result hidden">
-        <span>Click để cập nhật kết quả mới nhất</span>
-    </div>
-    <div class="controls-area hide" id="controlArea">
-        <div class="begindraw">
-            <img src="https://file4.batdongsan.com.vn/images/Product/Maps/icon-pen.png" width="16" title="Khoanh vùng" />
-            Vẽ để tìm
-        </div>
-        <div class="delshape">
-            <img src="https://file4.batdongsan.com.vn/images/Product/Maps/icon-delete.png" title="Xóa vùng đã khoanh" />
-            Xóa
-        </div>
-        <div class="fullscreen hidden">
-            <img src="https://file4.batdongsan.com.vn/images/Product/Maps/full-screen.png" title="Mở rộng toàn màn hình" />
-            Toàn màn hình
-        </div>
-        <div class="exitfullscreen hidden">
-            <img src="https://file4.batdongsan.com.vn/images/Product/Maps/exit-full-screen.png" title="Thoát chế độ rộng toàn màn hình" />
-            Mặc định
-        </div>
-    </div>
-    <div class="search-result-map">
-        <div id="lblResultMessage"></div>
-    </div>
 
     <form id="map-search-form">
         <div id="map-input" class="hidden">
@@ -275,11 +251,6 @@
             </div>
         </div>
         <div class="iw-content map-item-info-details">
-            <div class="btn-group-vertical map-item-info-buttons">
-                <a class=" map-item-view-utilities"><i class="fa fa-share-alt"></i> Tiện ich</a>
-                <a class=" map-item-gotoview"><i class="fa fa-feed"></i> Chi tiết</a>
-            </div>
-
             <h4 class="map-item-info-title iw-title">Place title</h4>
             <div class="iw-subTitle"><i class="fa fa-map-marker"></i> <span class="map-item-info-address"></span></div>
 
@@ -360,7 +331,8 @@
                     <div class="map-item-reviews-list">
                     </div>
 
-                    <div class="controls-utility hide" id="controlUtility">
+                    <div class="controls-utility" id="controlUtility">
+                        <span class="utility-close"><i class="fa fa-times-circle"></i></span>
                         <div class="controls-utility-toggle hidden"><i class="fa fa-angle-double-right"></i></div>
                         <div class="utility-head">Các loại tiện ích
                             <select id="cbbRadius">
@@ -374,47 +346,46 @@
                             </select>
                         </div>
                         <div class="utility-body">
-                            <label class="utility-type" for="chk4" title="Trường học">
-                                <input type="checkbox" class="minimal" checked="checked" id="chk4" value="4" />
-                                Trường học
-                            </label>
-                            <label class="utility-type" for="chk6" title="Bến xe, trạm xe">
-                                <input type="checkbox" class="minimal"  id="chk6" value="6" />
-                                Bến xe
-                            </label>
-                            <label class="utility-type" for="chk5" title="Cơ sở y tế">
-                                <input type="checkbox" class="minimal"  id="chk5" value="5" />
-                                Cơ sở y tế
-                            </label>
-                            <label class="utility-type" for="chk0" title="Địa điểm ăn uống">
-                                <input type="checkbox" class="minimal"  id="chk0" value="0" />
+                            <label class="utility-type" for="chk1" title="Địa điểm ăn uống">
+                                <input type="checkbox" id="chk1" value="1" />
                                 Ăn uống
-                            </label>
-                            <label class="utility-type" for="chk8" title="Khách sạn">
-                                <input type="checkbox" class="minimal"  id="chk8" value="8" />
-                                Khách sạn
                             </label>
                             <label class="utility-type" for="chk2" title="Trung tâm thể thao, giải trí">
                                 <input type="checkbox" class="minimal" checked="checked" id="chk2" value="2" />
                                 Giải trí
                             </label>
-                            <label class="utility-type" for="chk1" title="Địa điểm mua sắm">
-                                <input type="checkbox" class="minimal" checked="checked" id="chk1" value="1" />
+                            <label class="utility-type" for="chk3" title="Địa điểm mua sắm">
+                                <input type="checkbox" class="minimal" checked="checked" id="chk3" value="3" />
                                 Mua sắm
                             </label>
-                            <label class="utility-type" for="chk11" title="Địa điểm làm đẹp, spa">
-                                <input type="checkbox" class="minimal"  id="chk11" value="11" />
+                            <label class="utility-type" for="chk4" title="Bến xe, trạm xe">
+                                <input type="checkbox" id="chk4" value="4" />
+                                Bến xe
+                            </label>
+                            <label class="utility-type" for="chk5" title="Cơ sở y tế">
+                                <input type="checkbox" id="chk5" value="5" />
+                                Cơ sở y tế
+                            </label>
+                            <label class="utility-type" for="chk6" title="Trường học">
+                                <input type="checkbox" class="minimal" checked="checked" id="chk6" value="6" />
+                                Trường học
+                            </label>
+                            <label class="utility-type" for="chk7" title="Khách sạn">
+                                <input type="checkbox" id="7" value="7" />
+                                Khách sạn
+                            </label>
+                            <label class="utility-type" for="chk8" title="Địa điểm làm đẹp, spa">
+                                <input type="checkbox" id="chk8" value="18" >
                                 Làm đẹp
                             </label>
-                            <label class="utility-type" for="chk12" title="ATM, ngân hàng">
-                                <input type="checkbox" class="minimal"  id="chk12" value="12" />
+                            <label class="utility-type" for="chk9" title="ATM, ngân hàng">
+                                <input type="checkbox" id="chk9" value="9" />
                                 ATM, ngân hàng
                             </label>
-                            <label class="utility-type" for="chk9" title="Tiện ích khác">
-                                <input type="checkbox" class="minimal"  id="chk9" value="9" />
+                            <label class="utility-type" for="chk10" title="Tiện ích khác">
+                                <input type="checkbox" id="chk10" value="10" />
                                 Khác
                             </label>
-                            <span class="utility-close"><i class="fa fa-times-circle"></i></span>
                         </div>
                     </div>
                 </div>
@@ -422,6 +393,11 @@
             </div>
 
             <div class="map-item-info-more">
+                <div class="btn-group-vertical map-item-info-buttons">
+                    <a class="btn btn-default map-item-view-utilities"><i class="fa fa-share-alt"></i> Tiện ích</a>
+                    <a class="btn btn-default map-item-gotoview"><i class="fa fa-feed"></i> Chi tiết</a>
+                </div>
+
                 <div><i class="fa fa-bed"></i> Loại: <span class="map-item-info-type"></span> <a class="type-help" href="#"><i class="fa fa-question"></i></a></div>
                 <div><i class="fa fa-circle-o"></i> Số phòng còn: <span class="map-item-info-room"></span></div>
                 <div><i class="fa fa-phone"></i> Phone: <span class="map-item-info-contact_phone"></span></div>
@@ -438,6 +414,31 @@
 </div>
 
 <div id="map"></div>
+
+<div class="btn-map-update-result hidden">
+    <span>Click để cập nhật kết quả mới nhất</span>
+</div>
+<div class="controls-area hide" id="controlArea">
+    <div class="begindraw">
+        <img src="https://file4.batdongsan.com.vn/images/Product/Maps/icon-pen.png" width="16" title="Khoanh vùng" />
+        Vẽ để tìm
+    </div>
+    <div class="delshape">
+        <img src="https://file4.batdongsan.com.vn/images/Product/Maps/icon-delete.png" title="Xóa vùng đã khoanh" />
+        Xóa
+    </div>
+    <div class="fullscreen hidden">
+        <img src="https://file4.batdongsan.com.vn/images/Product/Maps/full-screen.png" title="Mở rộng toàn màn hình" />
+        Toàn màn hình
+    </div>
+    <div class="exitfullscreen hidden">
+        <img src="https://file4.batdongsan.com.vn/images/Product/Maps/exit-full-screen.png" title="Thoát chế độ rộng toàn màn hình" />
+        Mặc định
+    </div>
+</div>
+<div class="search-result-map">
+    <div id="lblResultMessage"></div>
+</div>
 
 
 <div class="popup popup-dark hide"><div class="popup-inner"><div>

@@ -19,6 +19,9 @@ var utilMarkers = {
         default: {
             url: MAIN_URL+'/assets/img/pin_lg_Restaurant.png',
         },
+        sm: {
+            url: MAIN_URL+'/assets/img/pin_sm_Restaurant.png',
+        },
         click: {
             url: MAIN_URL+'/assets/img/pin_lg_Restaurant.png',
         }
@@ -88,14 +91,14 @@ var cityList = [];
         this.autocomplete = null;
         this.geocoder = new google.maps.Geocoder();
         this.circle = null;
-        this.currentPID = null;
-        this.currentPjID = null;
-        this.currentUID = null;
+        this.currentPid = null;
+        this.currentPjid = null;
+        this.currentUid = null;
         this.BoxSearchPlace = null;
         this.tooltip = null;
-        //this.btnUpdateMapIdleResult = $('.btn-map-update-result');
+        //this.btnUpdateMapidleResult = $('.btn-map-update-result');
         $thismap.isDrawing = s.lstPoint != undefined && s.lstPoint != '';
-        this.isMapIdle = false;
+        this.isMapidle = false;
         this.isShowRefreshButton = false;
         this.isShowUtil = false;
         this.isDetails = false;
@@ -193,9 +196,9 @@ var cityList = [];
             this.input.zoom.value = s.zoom;
             this.input.center.value = s.center;
             this.input.points.value = s.lstPoint;
-            this.input.product.value = s.currentPID;
+            this.input.product.value = s.currentPid;
 
-            this.currentPID = s.currentPID;
+            this.currentPid = s.currentPid;
 
             var cc = this.input.center.value.split(':');
             this.centerPos = new google.maps.LatLng(cc[0], cc[1]);
@@ -213,10 +216,10 @@ var cityList = [];
 
             if (s.lstPoint != '') {
                 $thismap.isDrawing = true;
-                this.isMapIdle = false;
+                this.isMapidle = false;
                 this.beginDrawButton.hide();
                 this.deleteShapeButton.show();
-                //this.btnUpdateMapIdleResult.hide();
+                //this.btnUpdateMapidleResult.hide();
                 var h = s.lstPoint.split(',');
                 if (h.length >= 5) {
                     this.listLatlgn = new Array();
@@ -229,7 +232,7 @@ var cityList = [];
             var k = {
                 center: new google.maps.LatLng(f, g),
                 zoom: e,
-                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                MapTypeId: google.maps.MapTypeId.ROADMAP,
                 draggable: true,
 
                 overviewMapControl: true,
@@ -260,7 +263,7 @@ var cityList = [];
             this.map = new google.maps.Map(document.getElementById(v), k);
             this.map.controls[google.maps.ControlPosition.LEFT_TOP].push(document.getElementById('controlArea'));
             //this.map.controls[google.maps.ControlPosition.BOTTOM].push(document.getElementById('controlUtility'));
-            $('#controlArea,#controlUtility').show();
+            $('#controlArea').show();
 
             var input = document.getElementById('location');
             var options = {
@@ -278,7 +281,7 @@ var cityList = [];
                 $thismap.searchByLocation(place);
             });
             if (s.location) {
-                var place = this.geocodeAddress();
+                var place = this.geocodeaddress();
                 $thismap.searchByLocation(place);
             }
 
@@ -297,9 +300,9 @@ var cityList = [];
             }
         }
 
-        this.searchByLocationID = function geocodePlaceId () {
-            var placeId = this.input.location.value;
-            this.geocoder.geocode({'placeId': placeId}, function (results, status) {
+        this.searchByLocationid = function geocodePlaceid () {
+            var placeid = this.input.location.value;
+            this.geocoder.geocode({'placeid': placeid}, function (results, status) {
                 if (status === 'OK') {
                     if (results[0]) {
                         /*$thismap.map.setZoom(zoom_moderate);
@@ -319,7 +322,7 @@ var cityList = [];
             });
         }
 
-        this.geocodeAddress = function () {
+        this.geocodeaddress = function () {
             var address = this.input.location.value;
             $thismap.geocoder.geocode({'address': address}, function(results, status) {
                 if (status === 'OK') {
@@ -371,8 +374,8 @@ var cityList = [];
         this.boundsChangeCallBack = function () {
             google.maps.event.addListener($thismap.map, 'bounds_changed', function () {
                 if ($thismap.isMapResize) {
-                    if ($thismap.currentPID) {
-                        var key = $thismap.findMarkerKey($thismap.currentPID);
+                    if ($thismap.currentPid) {
+                        var key = $thismap.findMarkerKey($thismap.currentPid);
                         $thismap.map.setCenter($thismap.markers[key].position);
                     } else {
                         $thismap.map.setCenter($thismap.centerPos);
@@ -388,7 +391,7 @@ var cityList = [];
                 return
             }
             $thismap.isDrawing = true;
-            //this.btnUpdateMapIdleResult.hide();
+            //this.btnUpdateMapidleResult.hide();
             b.data.beginDrawButton.hide();
             b.data.deleteShapeButton.show();
             //b.data.ClearUtilitiesAroundPoint();
@@ -476,7 +479,7 @@ var cityList = [];
             this.input.points.value = '';
 
             $thismap.isDrawing = false;
-            this.isMapIdle = false;
+            this.isMapidle = false;
             this.callBackClearPointEvent(true);
         };
         this.endDraw = function(a) {
@@ -518,7 +521,7 @@ var cityList = [];
                 $thismap.polyline.setMap($thismap.map);
                 $thismap.findPoint($thismap.polyline);
 
-                //this.btnUpdateMapIdleResult.hide();
+                //this.btnUpdateMapidleResult.hide();
 
                 google.maps.event.addListener($thismap.polyline.getPath(), 'set_at', function() {
                     console.log('set_at polyline');
@@ -551,14 +554,6 @@ var cityList = [];
                 minLng = 100000;
             var e = '';
             for (var i = 0; i < c.length; i++) {
-                /*var adr = [];
-                if (c[i].hem) adr.push(c[i].hem);
-                if (c[i].ngach) adr.push(c[i].ngach);
-                if (c[i].ngo) adr.push(c[i].ngo);
-                if (c[i].duong) adr.push(c[i].duong);
-                if (c[i].huyen) adr.push(c[i].huyen);
-                if (c[i].diachi) adr.push(c[i].diachi);
-                c[i].address = adr.join(', ');*/
                 var f = c[i].lat();
                 var g = c[i].lng();
                 if (e.length > 0) e += ',';
@@ -617,12 +612,7 @@ var cityList = [];
                     labelContent: location.type,
                     labelAnchor: new google.maps.Point(6,14),
                     labelClass: "marker-label", // your desired CSS class
-                    labelInBackground: true,
-                    /*label: {
-                        text: location.type,
-                        color: "#444",
-                        fontSize: "10px"
-                    }*/
+                    labelInBackground: true
                 });
             });
 
@@ -635,12 +625,12 @@ var cityList = [];
                     productControlerObj.ChangeUrlForNewContext();
                 });
                 oneMarker.addListener('mouseover', function() {
-                    if (this.id != $thismap.currentPID) {
+                    if (this.id != $thismap.currentPid) {
                         this.setIcon(iconMarker.hover)
                     }
                 });
                 oneMarker.addListener('mouseout', function() {
-                    if (this.id != $thismap.currentPID) {
+                    if (this.id != $thismap.currentPid) {
                         this.setIcon(iconMarker.default)
                     }
                 })
@@ -655,13 +645,15 @@ var cityList = [];
                 }
             }
 
-            if (this.currentPID) {
-                this.showInfoWindow(this.currentPID, true);
+            if (this.currentPid) {
+                this.showInfoWindow(this.currentPid, true);
             }
 
             $thismap.markerCluster = new MarkerClusterer($thismap.map, $thismap.markers, {
                 imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
             });
+
+            this.ShowUtilitiesAll();
         };
 
         this.findDataInfo = function(i) {
@@ -691,10 +683,82 @@ var cityList = [];
 
         this.markerUtilities = new Array();
         this.dataUtilities = new Array();
+
+        this.ShowUtilitiesAll = function () {
+            $.ajax({
+                url: MAIN_URL+'/api/hanoi.php',
+                type: 'get',
+                success: function(data) {
+                    $thismap.dataUtilities = data
+                    $thismap.displayUtilitiesMarkers();
+                },
+                error: function(a, b, c) {
+                    console.log(a)
+                }
+            })
+        }
+
+        this.displayUtilitiesMarkers = function () {
+            if (this.dataUtilities != null && this.dataUtilities) {
+                this.markerUtilities = this.dataUtilities.map(function(utility, i) {
+                    console.log(utility);
+                    if (utility.AvgRating > 8) {
+                        return new MarkerWithLabel({
+                            position: new google.maps.LatLng(utility.latitude, utility.longitude),
+                            icon: utilMarkers[utility.type].default,
+                            labelContent: utility.AvgRatingText,
+                            labelAnchor: new google.maps.Point(13,11),
+                            labelClass: "marker-utility-label", // your desired CSS class
+                            labelInBackground: true
+                        });
+                    }
+                    else {
+                        return new google.maps.Marker({
+                            position: new google.maps.LatLng(utility.latitude, utility.longitude),
+                            icon: utilMarkers[utility.type].sm
+                        });
+                    }
+                });
+
+                $.each(this.markerUtilities, function (i, oneMarkerUtility) {
+                    //oneMarkerUtility.id = $thismap.dataUtilities[i].id;
+                    oneMarkerUtility.setMap($thismap.map);
+                    //this.markerUtilities.setTooltip(k);
+
+                    var currentMark;
+                    oneMarkerUtility.addListener('click', function() {
+                        currentMark = this;
+                        var j = $thismap.dataUtilities[i];
+                        var k = '';
+                        k += '<div class="infowindow-util-preview iw-content">';
+                        k += '<div class="bold infowindow-util-preview-title">' + j.Name + '</div>';
+                        k += '<div class="infowindow-util-preview-adr"><i class="fa fa-map-marker"></i> <span>' + j.address + '</span></div>';
+                        //k += '<div class="infowindow-util-preview-type">Loại tiện ích: ' + j.type + '</div>';
+                        //k += '<div class="infowindow-util-preview-typeid">Typeid: ' + j.typeid + '</div>';
+                        //k += '<div class="infowindow-util-preview-distance">Khoảng cách: ' + j.distance + 'm</div>';
+                        k += '<div class="infowindow-util-preview-ratings"><i class="fa fa-star"></i> Điểm foody: <span>' + j.AvgRatingText + '</span></div>';
+                        k += '</div>';
+
+                        $thismap.infoWindow.setOptions({
+                            position: oneMarkerUtility.position,
+                            maxWidth: 250,
+                            content: k
+                        });
+                        oneMarkerUtility.setIcon(utilMarkers[j.type].click);
+                        $thismap.infoWindow.open($thismap.map, oneMarkerUtility);
+                        //$thismap.ShowUtilityWindow(this.id)
+                        google.maps.event.addListener($thismap.infoWindow, 'closeclick', function () {
+                           currentMark.setIcon(utilMarkers[j.type].sm)
+                        });
+                    })
+                })
+            }
+        }
+
         this.ShowUtilitiesAroundCallback = function() {};
         this.ShowUtilitiesAroundPoint = function(c, d, e, f, g) {
-            //$thismap.btnUpdateMapIdleResult.hide();
-            var h = this.findMarker(this.currentPID);
+            //$thismap.btnUpdateMapidleResult.hide();
+            var h = this.findMarker(this.currentPid);
 
             if (h == undefined || h == null) return;
             h.setIcon(iconMarker.select);
@@ -732,50 +796,16 @@ var cityList = [];
                 }
             });
 
-            $thismap.input.isShowUtil.value = 1;
+            //$thismap.input.isShowUtil.value = 1;
             $thismap.isShowUtil = true;
             productControlerObj.ChangeUrlForNewContext();
 
-            if (this.dataUtilities != null && this.dataUtilities.length > 0) {
-                this.markerUtilities = this.dataUtilities.map(function(utility, i) {
-                    return new google.maps.Marker({
-                        position: new google.maps.LatLng(utility.latitude, utility.longitude),
-                        icon: utilMarkers[utility.type].default,
-                    });
-                });
-
-                $.each(this.markerUtilities, function (i, oneMarkerUtility) {
-                    //oneMarkerUtility.id = $thismap.dataUtilities[i].id;
-                    oneMarkerUtility.setMap($thismap.map);
-                    //this.markerUtilities.setTooltip(k);
-
-                    oneMarkerUtility.addListener('click', function() {
-                        var j = $thismap.dataUtilities[i];
-                        var k = '';
-                        k += '<div class="infowindow-util-preview iw-content">';
-                        k += '<div class="bold infowindow-util-preview-title">' + j.title + '</div>';
-                        if (j.address != null && j.address.length > 0) k += '<div class="infowindow-util-preview-adr"><i class="fa fa-map-marker"></i> <span>' + j.address + '</span></div>';
-                        k += '<div class="infowindow-util-preview-type">Loại tiện ích: ' + j.type + '</div>';
-                        k += '<div class="infowindow-util-preview-typeid">Typeid: ' + j.typeid + '</div>';
-                        k += '<div class="infowindow-util-preview-distance">Khoảng cách: ' + j.distance + 'm</div>';
-                        k += '</div>';
-
-                        $thismap.infoWindow.setOptions({
-                            position: oneMarkerUtility.position,
-                            maxWidth: 250,
-                            content: k
-                        });
-                        oneMarkerUtility.setIcon(utilMarkers[j.type].click);
-                        $thismap.infoWindow.open($thismap.map, oneMarkerUtility);
-                        //$thismap.ShowUtilityWindow(this.id)
-                    })
-                })
-            }
+            this.displayUtilitiesMarkers();
             this.ShowUtilitiesAroundCallback();
         };
         this.ClearUtilitiesAroundCallback = function() {};
         this.ClearUtilitiesAroundPoint = function(a) {
-            this.input.isShowUtil.value = 0;
+            //this.input.isShowUtil.value = 0;
             this.isShowUtil = false;
             if (this.circle != null) this.circle.setMap(null);
             if (this.markerUtilities != null && this.markerUtilities.length > 0) {
@@ -802,14 +832,6 @@ var cityList = [];
             if (a == null || a.length == 0) return [];
             var d = [];
             for (var i = 0; i < a.length; i++) {
-                /*var adr = [];
-                if (a[i].hem) adr.push(a[i].hem);
-                if (a[i].ngo) adr.push(a[i].ngo);
-                if (a[i].ngach) adr.push(a[i].ngach);
-                if (a[i].duong) adr.push(a[i].duong);
-                if (a[i].huyen) adr.push(a[i].huyen);
-                if (a[i].diachi) adr.push(a[i].diachi);
-                a[i].address = adr.join(', ');*/
                 var e = parseInt(google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(a[i].latitude, a[i].longitude), b));
                 if (e <= c) {
                     a[i].distance = e;
@@ -821,11 +843,12 @@ var cityList = [];
 
         this.closeInfoWindowCallBack = function (h) {
             h.setIcon(iconMarker.default);
-            this.input.product.value = this.currentPID = '';
+            this.input.product.value = this.currentPid = '';
             this.map.setZoom(zoom_moderate);
             this.map.setCenter(this.centerPos);
             this.ClearUtilitiesAroundPoint();
             productControlerObj.ChangeUrlForNewContext();
+            this.ShowUtilitiesAll();
         };
 
         this.showInfoTipWindow = function (h, k) {
@@ -843,8 +866,8 @@ var cityList = [];
         this.mouseHover = function (k) {
             if (this.markers) {
                 var currentMarkerKey = null;
-                if ($thismap.currentPID) {
-                    currentMarkerKey = this.findMarkerKey($thismap.currentPID);
+                if ($thismap.currentPid) {
+                    currentMarkerKey = this.findMarkerKey($thismap.currentPid);
                 }
                 $.each(this.markers, function (i, v) {
                     if (i == k) {
@@ -852,8 +875,8 @@ var cityList = [];
                         $thismap.map.setCenter(v.position);
                         $thismap.showInfoTipWindow(v, $('.map-result-one[attr-marker-id="'+i+'"]').html());
                         /*
-                        if ($thismap.currentPID == i) $thismap.infoWindow.close();
-                        if ($thismap.currentPID == i) $thismap.infoWindow.open($thismap.map, v); */
+                        if ($thismap.currentPid == i) $thismap.infoWindow.close();
+                        if ($thismap.currentPid == i) $thismap.infoWindow.open($thismap.map, v); */
                     } else if (i != currentMarkerKey) {
                         v.setIcon(iconMarker.default);
                     }
@@ -865,8 +888,8 @@ var cityList = [];
             if (this.markers) {
                 var currentMarkerKey = null;
                 this.markers[k].setIcon(iconMarker.default);
-                if ($thismap.currentPID) {
-                    currentMarkerKey = this.findMarkerKey($thismap.currentPID);
+                if ($thismap.currentPid) {
+                    currentMarkerKey = this.findMarkerKey($thismap.currentPid);
                     $thismap.map.setCenter(this.markers[currentMarkerKey].position);
                     if (currentMarkerKey == k) {
                         this.markers[currentMarkerKey].setIcon(iconMarker.select);
@@ -882,16 +905,16 @@ var cityList = [];
             var key = null;
 
             var runSet = false;
-            if (!isInit && d != this.currentPID) runSet = true;
+            if (!isInit && d != this.currentPid) runSet = true;
 
             if (d == undefined || d == null) {
-                d = this.currentPID;
-            } else if (d != this.currentPID && this.currentPID != null) {
-                var t = this.findMarkerKey(this.currentPID);
+                d = this.currentPid;
+            } else if (d != this.currentPid && this.currentPid != null) {
+                var t = this.findMarkerKey(this.currentPid);
                 var u = this.markers[t];
 
-                this.input.product.value = this.currentPID = d;
-                key = this.findMarkerKey(this.currentPID);
+                this.input.product.value = this.currentPid = d;
+                key = this.findMarkerKey(this.currentPid);
                 var e = this.markers[key];
                 var f = this.findDataInfo(key);
                 data = f;
@@ -901,7 +924,7 @@ var cityList = [];
                         u.setZIndex(6 - f.vip)
                     }
                 }
-            } else if (d == this.currentPID) {}
+            } else if (d == this.currentPid) {}
             this.input.product.value = d;
 
             if (this.markers != undefined) {
@@ -924,17 +947,19 @@ var cityList = [];
                 }
                 h.setIcon(iconMarker.select);
                 //h.setZIndex(300);
-                this.currentPID = data.id;
+                this.currentPid = data.id;
+
+                if (isInit && this.input.isShowUtil.value == 1) this.isShowUtil = true;
 
                 if (this.isShowUtil) {
-                    if (!isInit) this.ClearUtilitiesAroundPoint();
-                    productControlerObj.ShowMoreInfo(data.id, h.position.lat(), h.position.lng());
+                    //this.ClearUtilitiesAroundPoint();
+                    productControlerObj.ShowMoreInfo(data.id, h.position.lat(), h.position.lng(), isInit);
                 }
-                if (isInit) {
+                //if (isInit) {
                     if (this.isDetails) {
-                        productControlerObj.ShowDetails(this.currentPID);
+                        productControlerObj.ShowDetails(this.currentPid);
                     }
-                }
+                //}
 
                 data.room_left = parseInt(data.room) - parseInt(data.room_taken);
                 $('.map-item-info-title').html(data.title);
@@ -947,7 +972,7 @@ var cityList = [];
                 $('.map-item-info-address').html(data.address);
                 $('.map-item-info-des').html(data.details);
                 $('.map-item-info-thumb').attr('src', data.avatar);
-                $('.map-item-view-utilities').attr('href', 'javascript:productControlerObj.ShowMoreInfo(\''+data.id+'\', ' + data.latitude + ',' + data.longitude + ')');
+                $('.map-item-view-utilities').attr('href', 'javascript:productControlerObj.ShowMoreInfo(\''+data.id+'\', ' + data.latitude + ',' + data.longitude + ',false)');
                 //$('.map-item-gotoview').attr('href', MAIN_URL+'/map/'+data.id);
                 $('.map-item-gotoview').attr('href', 'javascript:productControlerObj.ShowDetails("' + data.id + '")');
 
@@ -1005,7 +1030,7 @@ var cityList = [];
 
             if (!$('.map-item-reviews-list').find('.map-item-review').length) {
                 $.get(MAIN_URL+'/api/node_one_reviews_map.php', function (reviews) {
-                    console.log(reviews);
+                    //console.log(reviews);
                     if (reviews.length) {
                         $.each(reviews, function (ri, rv) {
                             var rvRates = '<div class="overallBubbleRating"><span class="ui_star_rating star_'+rv.rating+'"></span></div>';
@@ -1032,10 +1057,10 @@ var cityList = [];
         this.Lon = 0;
         $utilthis = this;
         $(this).find('.utility-close').bind('click', this, function(a) {
-            a.data.hide();
+            //a.data.hide();
             a.data.Map.isShowUtil = false;
             if (!a.data.Map.isDrawing) {
-                //a.data.Map.btnUpdateMapIdleResult.show()
+                //a.data.Map.btnUpdateMapidleResult.show()
             }
             a.data.Map.map.setZoom(zoom_markerView);
 
@@ -1044,7 +1069,10 @@ var cityList = [];
             productControlerObj.ChangeUrlForNewContext();
 
             a.data.Map.ClearUtilitiesAroundPoint(false);
-            $('.map-item-reviews-list').show();
+            a.data.Map.ShowUtilitiesAll();
+            $utilthis.animate({width:0}, 200, function () {
+                $utilthis.hide();
+            });
             a.data.Map.showInfoWindow()
         });
         $(this).find('select, input').bind('change', this, function(a) {
@@ -1093,9 +1121,8 @@ var cityList = [];
                 k.v = new Date().getTime();
 
                 $.ajax({
-                    url: MAIN_URL+'/api/node_service.php',
+                    url: MAIN_URL+'/api/hanoi.php',
                     data: k,
-                    dataType: 'json',
                     type: 'get',
                     success: function(a, b, c) {
                         // when get all data, then filter here (not recommended)
@@ -1109,19 +1136,27 @@ var cityList = [];
                         $utilthis.Map.ShowUtilitiesAroundPoint($utilthis.Lat, $utilthis.Lon, f, data, h);
                     },
                     error: function(a, b, c) {
-                        console.log(a+' ~ '+b+' ~ '+c)
+                        console.log(a)
                     },
                     complete: function() {}
                 })
 
         };
         this.Map.ClearUtilitiesAroundCallback = function() {
-            $utilthis.hide();
-            $('.map-item-reviews-list').show();
+            if ($utilthis.width() > 0 && !this.isShowUtil) {
+                $utilthis.animate({width:0}, 200, function () {
+                    $utilthis.hide();
+                });
+            }
         };
         this.Map.ShowUtilitiesAroundCallback = function() {
-            $utilthis.show();
-            $('.map-item-reviews-list').hide();
+            console.log($utilthis.width());
+            if (this.isShowUtil) {
+                console.log(this.isShowUtil);
+                setTimeout(function () {
+                    $utilthis.show().animate({width:'100%'}, 200);
+                }, 200)
+            }
         };
         return this
     };
@@ -1165,7 +1200,7 @@ ProductSearchControler = function(h) {
     this.ProductMap.initialize();
 
     var context = h.context;
-    if (!context.city && !context.currentPID) this.showCitySearch();
+    if (!context.city && !context.currentPid) this.showCitySearch();
     else if (context.city) {
         if (!context.district) {
             c_city = context.city;
@@ -1177,7 +1212,7 @@ ProductSearchControler = function(h) {
         this._SearchAction(JSON.parse(JSON.stringify(this.formSearch.serializeArray())));
     }
     this.formSearch.submit(function () {
-        i.ProductMap.currentPID = i.ProductMap.input.product.value = "";
+        i.ProductMap.currentPid = i.ProductMap.input.product.value = "";
         i.ChangeUrlForNewContext();
         i._SearchAction(JSON.parse(JSON.stringify(i.formSearch.serializeArray())));
         return false
@@ -1307,12 +1342,13 @@ ProductSearchControler.prototype.ShowMoreInfoAndHidePopup = function (id, lat, l
     this.ShowMoreInfo(id,lat,lon);
 }
 
-ProductSearchControler.prototype.ShowMoreInfo = function (id, lat, lon) {
+ProductSearchControler.prototype.ShowMoreInfo = function (id, lat, lon, isInit = true) {
     if (this.ProductMap.map.getZoom() < zoom_utilityView)
         this.ProductMap.map.setZoom(zoom_utilityView);
-
-    this.utilityTool.ResetRadius();
-    this.utilityTool.SearchAction(lat, lon);
+    if (!this.ProductMap.isShowUtil || isInit) {
+        this.utilityTool.ResetRadius();
+        this.utilityTool.SearchAction(lat, lon);
+    }
 };
 
 ProductSearchControler.prototype.ShowDetails = function (id) {
@@ -1325,14 +1361,6 @@ ProductSearchControler.prototype.ShowDetails = function (id) {
     $.get(MAIN_URL+'/api/node_one.php', function (place) {
         console.log(place);
         place.room_left = parseInt(place.room) - parseInt(place.room_taken);
-        /*var adr = [];
-        if (place.hem) adr.push(place.hem);
-        if (place.ngach) adr.push(place.ngach);
-        if (place.ngo) adr.push(place.ngo);
-        if (place.duong) adr.push(place.duong);
-        if (place.huyen) adr.push(place.huyen);
-        if (place.diachi) adr.push(place.diachi);
-        place.address = adr.join(', ');*/
         $('.v-place-room_left_num').html(place.room_left+'/'+place.room);
         $('.v-place-pricenum').html(place.price);
         $('.place-contact-info').html('<h3>'+place.tenlienhe+'</h3><a href="tel:'+place.dienthoai+'" class="place-contact-info-phone btn btn-danger">'+place.dienthoai+'</a>');
@@ -1403,14 +1431,6 @@ ProductSearchControler.prototype.showList = function (d) {
     var f = this;
     f.mapResults.html('');
     $.each(d, function (i, v) {
-        /*var adr = [];
-        if (v.hem) adr.push(v.hem);
-        if (v.ngach) adr.push(v.ngach);
-        if (v.ngo) adr.push(v.ngo);
-        if (v.duong) adr.push(v.duong);
-        if (v.huyen) adr.push(v.huyen);
-        if (v.diachi) adr.push(v.diachi);
-        v.address = adr.join(', ');*/
         k = '<div attr-id="'+v.id+'" attr-marker-id="'+i+'" class="map-result-one">';
         k += '<div class="map-result-one-left no-padding">'
         k += '<img class="map-result-one-thumb" src="'+v.avatar+'">';
@@ -1423,7 +1443,7 @@ ProductSearchControler.prototype.showList = function (d) {
         //k += '<div class="map-result-one-type">'+v.type+'</div>';
         //k += '<div class="map-result-one-phone">'+v.phone+'</div>';
         k += '<div class="map-result-one-ratings">';
-        k += '<span class="ui_bubble_rating bubble_'+v.rating.toString().replace('.', '')+'"></span><a href="javascript:productControlerObj.ShowMoreInfo(\''+v.id+'\','+v.latitude+','+v.longitude+')" target="_blank" class="more">'+v.reviews+' Reviews</a>';
+        k += '<span class="ui_bubble_rating bubble_'+v.rating.toString().replace('.', '')+'"></span><a href="javascript:productControlerObj.showInfoWindow(\''+v.id+'\','+v.latitude+','+v.longitude+',false)" target="_blank" class="more">'+v.reviews+' Reviews</a>';
         k += '</div>';
         k += '</div>';
         k += '<div class="clearfix"></div>';
@@ -1492,8 +1512,8 @@ ProductSearchControler.prototype.ChangeUrlForNewContext = function(e) {
     a += "&points=" + (this.ProductMap.isDrawing ? ($input.points.value != undefined ? $input.points.value : '') : '');
     a += "&zoom=" + this.ProductMap.getZoom();
     a += "&center=" + this.ProductMap.getCenter();
-    a += "&product=" + (this.ProductMap.currentPID != undefined && this.ProductMap.currentPID != null ? this.ProductMap.currentPID : '');
-    a += "&isShowUtil=" + (this.ProductMap.isShowUtil && this.ProductMap.currentPID != undefined && this.ProductMap.currentPID != null ? 1 : 0);
+    a += "&product=" + (this.ProductMap.currentPid != undefined && this.ProductMap.currentPid != null ? this.ProductMap.currentPid : '');
+    a += "&isShowUtil=" + (this.ProductMap.isShowUtil && this.ProductMap.currentPid != undefined && this.ProductMap.currentPid != null ? 1 : 0);
     a += "&details=" + (this.ProductMap.isDetails ? 1 : 0);
     window.location.href = window.location.pathname + '#' + a;
     //console.log('ChangeUrlForNewContext: '+window.location.pathname + '#' + a);
@@ -1622,7 +1642,7 @@ $(window).ready(function() {
             lstPoint: markContext.getQueryHash('points'),
             zoom: markContext.getQueryHash('zoom', zoom_moderate),
             center: markContext.getQueryHash('center'),
-            currentPID: markContext.getQueryHash('product'),
+            currentPid: markContext.getQueryHash('product'),
             isShowUtil: markContext.getQueryHash('isShowUtil'),
             details: markContext.getQueryHash('details'),
             location: markContext.getQueryHash('location'),
