@@ -17,7 +17,6 @@
 </head>
 <body>
 
-	<script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyACkc-PYhlnPUWJaV2GlcCiEcuJujZsMdc&libraries=places"></script>
     <script src="http://localhost/rent/assets/dist/js/muabanData.js"></script>
 
 </body>

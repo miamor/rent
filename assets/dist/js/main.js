@@ -30,7 +30,7 @@ function remove_popup () {
 }
 
 function scrolltoDiv (div) {
-    console.log($(div).offset().top);
+    //console.log($(div).offset().top);
     $('html, body').animate({
         scrollTop: $(div).offset().top
     }, 800);

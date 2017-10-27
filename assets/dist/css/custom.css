@@ -349,9 +349,9 @@ label.utility-type .uti-total{font-weight: 500}
     width: 40%
 }
 #controlArea{
-    left: 10px!important;
-    width:115px;
-    top:51px!important;
+    left: 40px!important;
+    width:95px;
+    top:10px!important;
     height:25px
 }
 .gm-style-cc{display: none!important}
@@ -444,7 +444,7 @@ label.utility-type .uti-total{font-weight: 500}
 .map-result-one-thumb{
     position: relative;
     width: 100%;
-    height: auto;
+    height: 80px;
     margin: 3px 10px 0 0;
     *float: left
 }
@@ -491,6 +491,7 @@ label.utility-type .uti-total{font-weight: 500}
 .map-item-info-buttons a{display:block;font-size:12px;line-height:18px}
 .map-item-info-buttons a.btn-danger{color:#fff!important}
 .marker-label,.marker-utility-label{width:30px;height:16px;border:1px solid #eb3a44;border-radius:2px;background:#fee1d7;*background:rgba(73, 184, 158, 0.3);text-align:center;line-height:12px;font-weight:500;font-size:13px;color:#eb3a44}
+.marker-label{margin:-1px 0 0 -16px!important}
 .marker-utility-label{width:24px;height:14px;border-color:#eb3a44;background:#fee1d7;line-height:12px;font-weight:400;font-size:10px;color:#eb3a44}
 .map-item-col{position:relative}
 .map-item-col:after{content:'';position:absolute;height:1px;left:50px;right:50px;border-bottom:1px solid #eee;bottom:-10px}
@@ -625,6 +626,7 @@ select#city_first:focus{background:#fff!important}
 .map-item-ratings .row_count{padding-left:6px;vertical-align:top;color:#767676;box-sizing:border-box;text-align:right;}
 
 .ui_reviews{position:relative;margin:10px 0}
+.ui_reviews .no-reviews-found{padding:0 0 10px;font-style:italic}
 .map-item-reviews-list{position:relative;margin:14px 0;padding-right:8px;text-align:justify}
 .map-item-review{position:relative;height:51px;margin:3px 0 6px}
 .map-item-review-avatar{position:absolute;left:0;top:4px;width:45px;height:45px;border-radius:5px}
@@ -760,6 +762,15 @@ select#city_first:focus{background:#fff!important}
  */
 #map_select{position:relative;width:100%;height:400px}
 #map_adr+#infowindow-content{display:none}
+
+
+
+main.beginScreen > *:not(#map):not(.map-side), main.beginScreen .map-item-info-board, main.beginScreen .map-side-toggle, main.beginScreen .disabled:before{display:none}
+main.beginScreen .map-side{width:100%!important;display:block;overflow:auto!important}
+main.beginScreen #map-search-form{opacity:1;height:400px;padding:300px 15% 0;box-shadow:inset 0px 0 18px 0 rgba(0,0,0,.2)!important;background:url(../../img/banner1.jpg);background-size:100% auto}
+main.beginScreen .map-search-form{padding:0!important}
+main.beginScreen .map-search-form input, main.beginScreen .map-search-form select{height:60px!important}
+main.beginScreen .map-filters{top:360px;left:15%}
 
 
 /* Footer */

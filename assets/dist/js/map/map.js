@@ -28,36 +28,41 @@ var utilMarkers = {
     }
 }
 var markerSize = new google.maps.Size(23, 25);
-var labelPoint = new google.maps.Point(11,25);
+var markerOrigin = new google.maps.Point(12, 12);
+var markerAnchor = new google.maps.Point(0, 32);
+var labelPoint = new google.maps.Point(0,0); // 11,25
 var iconMarker = {
     default: {
         labelOrigin: labelPoint,
-        url: MAIN_URL+'/assets/img/pin_lg_Hotel.png',
-        scaledSize: markerSize,
+        url: MAIN_URL+'/assets/img/marker.svg',
+        /*scaledSize: markerSize,
         size: markerSize,
-        origin: new google.maps.Point(0, 0),
-        anchor: new google.maps.Point(0, 32)
+        origin: markerOrigin,
+        anchor: markerAnchor*/
     },
     hover: {
         labelOrigin: labelPoint,
-        url: MAIN_URL+'/assets/img/marker5.png',
-        scaledSize: markerSize,
+        url: MAIN_URL+'/assets/img/marker-hightlight.svg',
+        /*scaledSize: markerSize,
         size: markerSize,
-        origin: new google.maps.Point(0, 0),
-        anchor: new google.maps.Point(0, 32)
+        origin: markerOrigin,
+        anchor: markerAnchor*/
     },
     select: {
         labelOrigin: labelPoint,
-        url: MAIN_URL+'/assets/img/marker-hover.png',
-        scaledSize: markerSize,
+        url: MAIN_URL+'/assets/img/marker5.png',
+        /*scaledSize: markerSize,
         size: markerSize,
-        origin: new google.maps.Point(0, 0),
-        anchor: new google.maps.Point(0, 32)
+        origin: markerOrigin,
+        anchor: markerAnchor*/
+    },
+    group: {
+        url: MAIN_URL+'/assets/img/marker-plus.svg',
     }
 };
-var zoom_markerView = 13;
-var zoom_moderate = 11;
-var zoom_utilityView = 16;
+var zoom_markerView = 16;
+var zoom_moderate = 14;
+var zoom_utilityView = 15;
 var cityList = [];
 
 (function($) {
@@ -91,6 +96,7 @@ var cityList = [];
         this.autocomplete = null;
         this.geocoder = new google.maps.Geocoder();
         this.circle = null;
+        this.circleAroundSearchPoint = null;
         this.currentPid = null;
         this.currentPjid = null;
         this.currentUid = null;
@@ -102,6 +108,8 @@ var cityList = [];
         this.isShowRefreshButton = false;
         this.isShowUtil = false;
         this.isDetails = false;
+        this.pointPos = null;
+        this.pointRadius = null;
         this.infoBoxOptions = {
             disableAutoPan: false,
             maxWidth: 0,
@@ -116,6 +124,11 @@ var cityList = [];
         };
         this.infoWindow = new google.maps.InfoWindow();
         this.infoTipWindow = new google.maps.InfoWindow();
+        this.selectedMarker = new google.maps.Marker({
+            icon: iconMarker.select
+        });
+
+        this.oms = null;
 
         this.beginDrawButton = $('.' + o);
         this.deleteShapeButton = $('.' + p);
@@ -140,6 +153,8 @@ var cityList = [];
         this.input.isShowUtil = document.getElementById('isShowUtil');
         this.input.details = document.getElementById('details');
         this.input.location = document.getElementById('location');
+        this.input.lat = document.getElementById('lat');
+        this.input.lng = document.getElementById('lng');
         this.input.location_radius = document.getElementById('location_radius');
 
         this.setContext = function(a, b, c) {
@@ -184,6 +199,8 @@ var cityList = [];
             if (s.price) this.input.price.value = s.price;
             if (s.area) this.input.area.value = s.area;
             if (s.location) this.input.location.value = s.location;
+            if (s.lat) this.input.lat.value = s.lat;
+            if (s.lng) this.input.lng.value = s.lng;
             if (s.location_radius) this.input.location_radius.value = s.location_radius;
             if (s.details == 1) {
                 this.input.details.value = 1;
@@ -242,7 +259,7 @@ var cityList = [];
                 panControl: false,
                 rotateControl: false,
                 scaleControl: false,
-                mapTypeControl: true,
+                mapTypeControl: false,
                 mapTypeControlOptions: {
                     style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
                     position: google.maps.ControlPosition.LEFT_TOP
@@ -261,6 +278,20 @@ var cityList = [];
                 }
             };
             this.map = new google.maps.Map(document.getElementById(v), k);
+
+            this.oms = new OverlappingMarkerSpiderfier(this.map, {
+                markersWontMove: true,
+                markersWontHide: true,
+                basicFormatEvents: true
+            });
+            this.oms.addListener('format', function(marker, status) {
+                var micon = iconMarker.default;
+                if (status == OverlappingMarkerSpiderfier.markerStatus.SPIDERFIED) iconURL = iconMarker.default;
+                else if (status == OverlappingMarkerSpiderfier.markerStatus.SPIDERFIABLE) iconURL = iconMarker.group;
+                //console.log(status);
+                //console.log(OverlappingMarkerSpiderfier.markerStatus);
+                marker.setIcon(micon);
+            });
 
             var styles = [{"featureType":"administrative","elementType":"geometry","stylers":[{"visibility":"off"}]},{"featureType":"poi","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","stylers":[{"visibility":"off"}]}];
             var styledMap = new google.maps.StyledMapType(styles, {name: "Styled Map"});
@@ -286,7 +317,7 @@ var cityList = [];
                 var place = $thismap.autocomplete.getPlace();
                 $thismap.searchByLocation(place);
             });
-            if (s.location) {
+            if (s.location && (!s.lat || !s.lng)) {
                 var place = this.geocodeaddress();
                 $thismap.searchByLocation(place);
             }
@@ -306,7 +337,7 @@ var cityList = [];
             }
         }
 
-        this.searchByLocationid = function geocodePlaceid () {
+        this.searchByLocationId = function geocodePlaceid () {
             var placeid = this.input.location.value;
             this.geocoder.geocode({'placeid': placeid}, function (results, status) {
                 if (status === 'OK') {
@@ -340,6 +371,32 @@ var cityList = [];
             });
         }
 
+        this.showSearchPoint = function () {
+            $thismap.map.setCenter($thismap.pointPos);
+            $thismap.map.setZoom(zoom_moderate);
+            $thismap.markerPoint.setPosition($thismap.pointPos);
+            $thismap.markerPoint.setVisible(true);
+
+            if (this.circleAroundSearchPoint == null) {
+                this.circleAroundSearchPoint = new google.maps.Circle({
+                    center: $thismap.pointPos,
+                    radius: parseInt($thismap.pointRadius),
+                    strokeColor: '#00c2ff',
+                    strokeOpacity: 0.2,
+                    strokeWeight: 2,
+                    fillColor: '#00c2ff',
+                    fillOpacity: 0.1
+                    //fillOpacity: 0.4
+                });
+            } else {
+                this.circleAroundSearchPoint.setOptions({
+                    center: $thismap.pointPos,
+                    radius: parseInt($thismap.pointRadius)
+                });
+            }
+            this.circleAroundSearchPoint.setMap(this.map);
+        }
+
         this.searchByLocation = function (place) {
             if (place) {
                 $thismap.markerPoint.setVisible(false);
@@ -350,24 +407,21 @@ var cityList = [];
                 if (place.geometry.viewport) {
                     $thismap.map.fitBounds(place.geometry.viewport);
                 } else {
-                    $thismap.map.setCenter(place.geometry.location);
-                    $thismap.map.setZoom(zoom_moderate);
+                    //$thismap.map.setCenter(place.geometry.location);
+                    //$thismap.map.setZoom(zoom_moderate);
                 }
-                $thismap.markerPoint.setPosition(place.geometry.location);
-                $thismap.markerPoint.setVisible(true);
-                //console.log(place);
+                //$thismap.markerPoint.setPosition(place.geometry.location);
+                //$thismap.markerPoint.setVisible(true);
+                console.log(place);
 
-                var circleAroundPoint = new google.maps.Circle({
-                    strokeColor: '#FF0000',
-                    strokeOpacity: 0.5,
-                    strokeWeight: 2,
-                    fillColor: '#FF0000',
-                    fillOpacity: 0.15,
-                    map: $thismap.map,
-                    center: place.geometry.location,
-                    radius: $thismap.input.location_radius.value
-                });
+                $thismap.pointPos = place.geometry.location;
+                $thismap.input.lat.value = $thismap.pointPos.lat();
+                $thismap.input.lng.value = $thismap.pointPos.lng();
+                $thismap.pointRadius = $thismap.input.location_radius.value;
+
                 if (place.geometry.location != this.input.location.value) productControlerObj.ChangeUrlForNewContext();
+
+                this.showSearchPoint();
             }
         }
 
@@ -382,7 +436,9 @@ var cityList = [];
                 if ($thismap.isMapResize) {
                     if ($thismap.currentPid) {
                         var key = $thismap.findMarkerKey($thismap.currentPid);
-                        $thismap.map.setCenter($thismap.markers[key].position);
+                        if (key) {
+                            $thismap.map.setCenter($thismap.markers[key].position);
+                        }
                     } else {
                         $thismap.map.setCenter($thismap.centerPos);
                     }
@@ -597,13 +653,28 @@ var cityList = [];
         this.callBackClearPointEvent = function() {};
 
         this.showMap = function(a, b) {
+            //this.clearPoint();
             this.data = [];
-            for (var i = 0; i < a.length; i++) {
-                if (this.isInPolyline(a[i].latitude, a[i].longitude)) {
-                    if (a[i].avatar == null || a[i].avatar == '') a[i].avatar = MAIN_URL+'/assets/img/noimage.png';
-                    this.data.push(a[i])
+            if (this.isDrawing) {
+                for (var i = 0; i < a.length; i++) {
+                    if (this.isInPolyline(a[i].latitude, a[i].longitude)) {
+                        if (a[i].avatar == null || a[i].avatar == '') a[i].avatar = MAIN_URL+'/assets/img/noimage.png';
+                        this.data.push(a[i])
+                    }
+                }
+            } else if (this.pointPos && this.pointRadius) {
+                //console.log(a);
+                this.showSearchPoint();
+                for (var i = 0; i < a.length; i++) {
+                    var e = parseInt(google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(a[i].latitude, a[i].longitude), $thismap.pointPos));
+                    if (e <= $thismap.pointRadius) {
+                        //a[i].distance = e;
+                        this.data.push(a[i])
+                    }
                 }
             }
+            // show list in the sidebar
+            productControlerObj.showList(this.data);
             this.showPoint(this.data, b);
             return this.data
         };
@@ -612,9 +683,9 @@ var cityList = [];
             this.clearPoint();
 
             $thismap.markers = a.map(function(location, i) {
-                return new MarkerWithLabel({
+                return new google.maps.Marker({
                     position: new google.maps.LatLng(location.latitude, location.longitude),
-                    icon: iconMarker.default,
+                    //icon: iconMarker.default,
                     labelContent: location.type,
                     labelAnchor: new google.maps.Point(6,14),
                     labelClass: "marker-label", // your desired CSS class
@@ -623,14 +694,31 @@ var cityList = [];
             });
 
             $.each($thismap.markers, function (i, oneMarker) {
-                //if ($thismap.map.getZoom() >= 12) oneMarker.setMap($thismap.map);
+                //if ($thismap.map.getZoom() >= 12)
+                //oneMarker.setMap($thismap.map);
+
+                $thismap.oms.addMarker(oneMarker);
+
                 oneMarker.id = a[i].id;
-                oneMarker.addListener('click', function() {
+
+                google.maps.event.addListener(oneMarker, 'spider_click', function(e) {  // 'spider_click', not plain 'click'
                     $thismap.showInfoWindow(this.id);
+                    if ($thismap.isShowUtil) {
+                        productControlerObj.ShowMoreInfo($thismap.currentPid, oneMarker.position.lat(), oneMarker.position.lng())
+                    }
                     $thismap.input.product.value = this.id;
                     productControlerObj.ChangeUrlForNewContext();
                 });
-                oneMarker.addListener('mouseover', function() {
+                /*
+                /*oneMarker.addListener('click', function() {
+                    $thismap.showInfoWindow(this.id);
+                    if ($thismap.isShowUtil) {
+                        productControlerObj.ShowMoreInfo($thismap.currentPid, oneMarker.position.lat(), oneMarker.position.lng())
+                    }
+                    $thismap.input.product.value = this.id;
+                    productControlerObj.ChangeUrlForNewContext();
+                });
+                /*oneMarker.addListener('mouseover', function() {
                     if (this.id != $thismap.currentPid) {
                         this.setIcon(iconMarker.hover)
                     }
@@ -639,8 +727,43 @@ var cityList = [];
                     if (this.id != $thismap.currentPid) {
                         this.setIcon(iconMarker.default)
                     }
-                })
+                })*/
             })
+
+            $thismap.map.addListener('idle', function() {
+                // change spiderable markers to plus sign markers
+                // we are lucky here in that initial map is completely clustered
+                // for there is no init listener in oms :(
+                // so we swap on the first zoom/idle
+                // and subsequently any other zoom/idle
+                var spidered = $thismap.oms.markersNearAnyOtherMarker();
+                for (var i = 0; i < spidered.length; i ++) {
+                    // this was set when we created the markers
+                    spidered[i].setIcon(iconMarker.group);
+                    // code to manipulate your spidered icon url
+                };
+
+            });
+
+            $thismap.oms.addListener('unspiderfy', function(markers) {
+                var spidered = markers;
+                for (var i = 0; i < spidered.length; i ++) {
+                    url = spidered[i].icon.url;
+                    // change it back
+                    //spidered[i].setIcon(iconMarker.default)
+                    spidered[i].setIcon(iconMarker.group)
+                    //spidered[i].setZIndex(1)
+                };
+            });
+
+            $thismap.oms.addListener('click', function(marker) {
+                // put the clicked-on marker on top
+                // when oms un-spiders
+                $thismap.selectedMarker.setPosition(marker.position);
+                $thismap.selectedMarker.setMap($thismap.map);
+                //marker.setIcon(iconMarker.select);
+            });
+
             if (b !== undefined && b) {
                 if (this.polyline != undefined && this.polyline != null) {
                     var g = new google.maps.LatLngBounds();
@@ -655,11 +778,11 @@ var cityList = [];
                 this.showInfoWindow(this.currentPid, true);
             }
 
-            $thismap.markerCluster = new MarkerClusterer($thismap.map, $thismap.markers, {
+            /*$thismap.markerCluster = new MarkerClusterer($thismap.map, $thismap.markers, {
                 imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-            });
+            });*/
 
-            if (!this.isShowUtil) this.ShowUtilitiesAll();
+            //if (!this.isShowUtil) this.ShowUtilitiesAll();
         };
 
         this.findDataInfo = function(i) {
@@ -764,10 +887,12 @@ var cityList = [];
         this.ShowUtilitiesAroundCallback = function() {};
         this.ShowUtilitiesAroundPoint = function(c, d, e, f, g) {
             //$thismap.btnUpdateMapidleResult.hide();
+            $thismap.map.setZoom(zoom_utilityView);
+
             var h = this.findMarker(this.currentPid);
 
             if (h == undefined || h == null) return;
-            h.setIcon(iconMarker.select);
+            //h.setIcon(iconMarker.select);
             h.setZIndex(300);
             e = parseInt(e);
             this.ClearUtilitiesAroundPoint();
@@ -848,13 +973,15 @@ var cityList = [];
         };
 
         this.closeInfoWindowCallBack = function (h) {
-            h.setIcon(iconMarker.default);
+            //h.setIcon(iconMarker.default);
+            $thismap.selectedMarker.setPosition(null);
+
             this.input.product.value = this.currentPid = '';
             this.map.setZoom(zoom_moderate);
-            this.map.setCenter(this.centerPos);
+            this.map.setCenter($thismap.pointPos);
             this.ClearUtilitiesAroundPoint();
             productControlerObj.ChangeUrlForNewContext();
-            this.ShowUtilitiesAll();
+            //this.ShowUtilitiesAll();
         };
 
         this.showInfoTipWindow = function (h, k) {
@@ -925,7 +1052,7 @@ var cityList = [];
                 var f = this.findDataInfo(key);
                 data = f;
                 if (u != undefined && u != null) {
-                    u.setIcon(iconMarker.default);
+                    //u.setIcon(iconMarker.default);
                     if (f != undefined && f != null) {
                         u.setZIndex(6 - f.vip)
                     }
@@ -944,14 +1071,20 @@ var cityList = [];
             if (key != null && data) {
                 var h = this.markers[key];
                 if (runSet) {
-                    if (!this.isShowUtil && this.map.getZoom() < zoom_markerView) this.map.setZoom(zoom_markerView);
-                    else {
-                        this.input.zoom.value = this.map.getZoom();
-                        productControlerObj.ChangeUrlForNewContext();
-                    }
+                    this.input.zoom.value = this.map.getZoom();
+                    productControlerObj.ChangeUrlForNewContext();
                     this.map.setCenter(h.position);
                 }
-                h.setIcon(iconMarker.select);
+                //h.setIcon(iconMarker.select);
+
+                $thismap.selectedMarker.setPosition(h.position);
+                $thismap.selectedMarker.setZIndex(999);
+                $thismap.selectedMarker.setMap($thismap.map);
+                //console.log('selectedMarker');
+
+                $thismap.map.setCenter(h.position);
+                $thismap.map.setZoom(zoom_markerView);
+
                 //h.setZIndex(300);
                 this.currentPid = data.id;
 
@@ -1021,26 +1154,27 @@ var cityList = [];
         }
 
         this.ShowRatings = function (data) {
-            $('#overallRating').html(data.rating);
-            $('.overallBubbleRating .ui_star_rating').addClass('star_'+data.rating.toString().replace('.', ''));
-            $('#totalReviews').html(data.reviews);
-            if (data.reviews_details) {
-                var reviewsSta = data.reviews_details.split('|');
-                for (i = 1; i <= 5; i++) {
-                    var votes = reviewsSta[i-1].split(':')[1];
-                    var per = (votes/data.reviews*100).toFixed(2);
-                    $chartRow = $('.chart_row[data-idx="'+i+'"]');
-                    $chartRow.attr('title', votes+' đánh giá - '+per+'%');
-                    $chartRow.find('.fill').css('width', per+'%');
-                    $chartRow.find('.row_count').html(per+'%');
+            if (!data.rating) {
+                $('.ui_reviews').html('<div class="no-reviews-found">Chưa có đánh giá nào. <a href="javascript:productControlerObj.ShowDetails(\''+data.id+'\')" class="more">Thêm đánh giá</a></div>');
+            } else {
+                $('#overallRating').html(data.rating);
+                $('.overallBubbleRating .ui_star_rating').addClass('star_'+data.rating.toString().replace('.', ''));
+                $('#totalReviews').html(data.totalReviews);
+                if (data.totalReviews) {
+                    var reviewsSta = data.reviews_details.split('|');
+                    for (i = 1; i <= 5; i++) {
+                        var votes = reviewsSta[i-1].split(':')[1];
+                        var per = (votes/data.totalReviews*100).toFixed(2);
+                        $chartRow = $('.chart_row[data-idx="'+i+'"]');
+                        $chartRow.attr('title', votes+' đánh giá - '+per+'%');
+                        $chartRow.find('.fill').css('width', per+'%');
+                        $chartRow.find('.row_count').html(per+'%');
+                    }
                 }
-            }
 
-            // get reviews
-            if (!$('.map-item-reviews-list').find('.map-item-review').length) {
-                $.get(MAIN_URL+'/api/node_one_reviews_map.php', function (reviews) {
-                    //console.log(reviews);
-                    if (reviews.length) {
+                // get reviews
+                if (!$('.map-item-reviews-list').find('.map-item-review').length) {
+                    $.get(MAIN_URL+'/api/node_one_reviews_map.php', function (reviews) {
                         $.each(reviews, function (ri, rv) {
                             var rvRates = '<div class="overallBubbleRating"><span class="ui_star_rating star_'+rv.rating+'"></span></div>';
                             $('.v-place-reviews-list').append('<div class="one-review"><img class="one-review-avatar" src="'+rv.avatar+'"/> <h5><a class="one-review-username" href="#">'+rv.name+'</a> '+rvRates+'</h5><div class="one-review-title">'+rv.title+'</div><div class="one-review-details">'+rv.details+'</div></div>');
@@ -1048,8 +1182,8 @@ var cityList = [];
                             var rvRates_sm = '<div class="overallBubbleRating left"><span class="ui_bubble_rating bubble_'+rv.rating+'"></span></div>';
                             $('.map-item-reviews-list').append('<div class="map-item-review"><img title="'+rv.name+'" class="map-item-review-avatar" src="'+rv.avatar+'"/> <div class="map-item-review-details">'+rvRates_sm+' '+rv.details.substring(0,100)+'</div></div>');
                         })
-                    }
-                });
+                    });
+                }
             }
         }
 
@@ -1078,7 +1212,7 @@ var cityList = [];
             productControlerObj.ChangeUrlForNewContext();
 
             a.data.Map.ClearUtilitiesAroundPoint(false);
-            a.data.Map.ShowUtilitiesAll();
+            //a.data.Map.ShowUtilitiesAll();
             $utilthis.animate({width:0}, 200, function () {
                 $utilthis.hide();
             });
@@ -1194,12 +1328,12 @@ ProductSearchControler = function(h) {
 
     this.ProductMap.callBackMapChange = function(a) {
         i.ChangeUrlForNewContext();
-        //i._SearchAction(JSON.parse(JSON.stringify(i.formSearch.serializeArray())));
+        //i._SearchAction();
     };
     this.ProductMap.callBackClearPointEvent = function(a) {
         i.ChangeUrlForNewContext();
         if (!i.ProductMap.isDrawing) {
-            i._SearchAction(JSON.parse(JSON.stringify(i.formSearch.serializeArray())));
+            i._SearchAction();
         }
     };
     this.ProductMap.callBackDrawEvent = function(a, b, c, d, e, f, g) {
@@ -1208,26 +1342,49 @@ ProductSearchControler = function(h) {
 
     this.ProductMap.initialize();
 
+    if (!this.ProductMap.isDrawing && this.formSearch.find('#location').value && this.formSearch.find('#lat').value && this.formSearch.find('#lng').value) {
+        this._SearchAction();
+    }
+    this.formSearch.submit(function () {
+        i.ProductMap.currentPid = i.ProductMap.input.product.value = "";
+        i.ChangeUrlForNewContext();
+        i.ProductMap.pointRadius = i.formSearch.find('#location_radius').val();
+        i._SearchAction();
+        return false
+    });
+    this.catchInputChange();
+
     var context = h.context;
-    if (!context.city && !context.currentPid) this.showCitySearch();
-    else if (context.city) {
+    if (!context.city && !context.currentPid) {
+        this.beginScreen();
+        //this.showCitySearch();
+    } else {
+        this.loadMapScreen();
+
         if (!context.district) {
             c_city = context.city;
             i.changeCityCallback();
         }
     }
-
-    if (!this.ProductMap.isDrawing) {
-        this._SearchAction(JSON.parse(JSON.stringify(this.formSearch.serializeArray())));
-    }
-    this.formSearch.submit(function () {
-        i.ProductMap.currentPid = i.ProductMap.input.product.value = "";
-        i.ChangeUrlForNewContext();
-        i._SearchAction(JSON.parse(JSON.stringify(i.formSearch.serializeArray())));
-        return false
-    });
-    this.catchInputChange();
 };
+
+ProductSearchControler.prototype.loadMapScreen = function () {
+    $('main').removeClass('beginScreen');
+    //console.log(mapContext);
+
+    this.ProductMap.input.lat.value = mapContext.lat;
+    this.ProductMap.input.lng.value = mapContext.lng
+    this.ProductMap.input.location_radius.value = mapContext.location_radius;
+
+    this.ProductMap.pointPos = new google.maps.LatLng(mapContext.lat, mapContext.lng);
+    this.ProductMap.pointRadius = mapContext.location_radius;
+
+    this._SearchAction();
+}
+
+ProductSearchControler.prototype.beginScreen = function () {
+    $('main').addClass('beginScreen');
+}
 
 ProductSearchControler.prototype.showCitySearch = function () {
     var i = this;
@@ -1247,7 +1404,7 @@ ProductSearchControler.prototype.showCitySearch = function () {
         i.changeCityCallback();
         remove_popup();
         i.ChangeUrlForNewContext();
-        i._SearchAction(JSON.parse(JSON.stringify(i.formSearch.serializeArray())));
+        i._SearchAction();
         return false
     })
 }
@@ -1357,6 +1514,7 @@ ProductSearchControler.prototype.ShowMoreInfo = function (id, lat, lon, isInit =
     console.log(this.ProductMap.isShowUtil);
     if (!this.ProductMap.isShowUtil || isInit) {
         this.utilityTool.ResetRadius();
+        //console.log(lat+' ~ '+lon);
         this.utilityTool.SearchAction(lat, lon);
     }
 };
@@ -1380,12 +1538,17 @@ ProductSearchControler.prototype.ShowDetails = function (id) {
         $('.v-place-adr').html(place.address);
         $('.v-place-avt').attr('src', place.avatar);
         $('.v-place-bg').css('background-image', 'url('+place.thumbs[0]+')');
+        $('.v-place-thumbs').html('');
         $.each(place.thumbs, function (ti, tv) {
             cls = '';
             if (ti == 0) cls = ' active';
             $('.v-place-thumbs').append('<img class="v-place-thumb'+cls+'" src="'+tv+'"/>')
         });
-        $('.v-place-ratings').html($('.ui_reviews').html());
+        if (place.totalReviews > 0)
+            $('.v-place-ratings').html($('.ui_reviews').html());
+        else
+            $('.v-place-view-more .v-place-ratings').html('<div class="no-reviews-found">Chưa có đánh giá nào. <a href="javascript:gotoDiv(\'.v-place-write-review\')">Thêm đánh giá</a></div>');
+
         popup($('#v-place-view').html(), true);
 
         i.writeReview(place.id);
@@ -1417,24 +1580,27 @@ ProductSearchControler.prototype.writeReview = function (id) {
 }
 
 ProductSearchControler.prototype._SearchAction = function(d) {
-    d.filter = 0;
-    d.sort = 0;
-    d.v = new Date().getTime();
-    this.searchVar = d;
-    var f = this;
-    $.ajax({
-        url: API_URL+'/nodes',
-        type: 'get',
-        success: function(data) {
-            // show on map
-            f.tempProductData = f.productData = f.ProductMap.showMap(data, d.isSearchForm);
-            // show list in the sidebar
-            f.showList(data);
-        },
-        error: function(a, b, c) {
-            console.log(a+' ~ '+b+' ~ '+c)
-        }
-    });
+    if (!d) {
+        d = JSON.parse(JSON.stringify(this.formSearch.serializeArray()));
+        d.filter = 0;
+        d.sort = 0;
+        d.v = new Date().getTime();
+        this.searchVar = d;
+        var f = this;
+        //console.log(d);
+        $.ajax({
+            url: API_URL+'/nodes',
+            type: 'get',
+            success: function(data) {
+                // show on map
+                if ($('main').is('.beginScreen')) $('main').removeClass('beginScreen');
+                f.tempProductData = f.productData = f.ProductMap.showMap(data, d.isSearchForm);
+            },
+            error: function(a, b, c) {
+                console.log(a+' ~ '+b+' ~ '+c)
+            }
+        });
+    }
 };
 
 ProductSearchControler.prototype.showList = function (d) {
@@ -1442,34 +1608,42 @@ ProductSearchControler.prototype.showList = function (d) {
     f.mapResults.html('');
     //$.each(d, function (i, v) {
     for (i = 0; i < 10; i++) {
-        v = d[i];
-        k = '<div attr-id="'+v.id+'" attr-marker-id="'+i+'" class="map-result-one">';
-        k += '<div class="map-result-one-left no-padding">'
-        k += '<img class="map-result-one-thumb" src="'+v.avatar+'">';
-        k += '<div class="map-result-one-price"><i class="fa fa-dollar"></i><span>'+v.price.replace('/tháng','')+'</span></div>';
-        k += '</div>';
-        k += '<div class="map-result-one-info">'
-        k += '<h3 class="map-result-one-title">'+v.title+'</h3>';
-        //k += '<div class="map-result-one-des">'+v.details+'</div>';
-        k += '<div class="map-result-one-adr"><i class="fa fa-map-marker"></i> '+v.address+'</div>';
-        //k += '<div class="map-result-one-type">'+v.type+'</div>';
-        //k += '<div class="map-result-one-phone">'+v.phone+'</div>';
-        k += '<div class="map-result-one-ratings">';
-        k += '<span class="ui_bubble_rating bubble_'+v.rating.toString().replace('.', '')+'"></span><a href="javascript:productControlerObj.showInfoWindow(\''+v.id+'\','+v.latitude+','+v.longitude+',false)" target="_blank" class="more">'+v.reviews+' Reviews</a>';
-        k += '</div>';
-        k += '</div>';
-        k += '<div class="clearfix"></div>';
-        k += '</div>';
-        f.mapResults.append(k);
+        if (d[i]) {
+            var v = d[i];
+            if (!v.rating) v.ratingTxt = '0';
+            else {
+                v.ratingTxt = v.rating.toString();
+                if (v.rating != round(v.rating)) v.ratingTxt = v.ratingTxt.replace('.', '');
+            }
+            if (!v.totalReviews) v.totalReviews = 0;
+            k = '<div attr-id="'+v.id+'" attr-marker-id="'+i+'" class="map-result-one">';
+            k += '<div class="map-result-one-left no-padding">'
+            k += '<img class="map-result-one-thumb" src="'+v.avatar+'">';
+            k += '<div class="map-result-one-price"><i class="fa fa-dollar"></i><span>'+v.price.replace('/tháng','')+'</span></div>';
+            k += '</div>';
+            k += '<div class="map-result-one-info">'
+            k += '<h3 class="map-result-one-title">'+v.title+'</h3>';
+            //k += '<div class="map-result-one-des">'+v.details+'</div>';
+            k += '<div class="map-result-one-adr"><i class="fa fa-map-marker"></i> '+v.address+'</div>';
+            //k += '<div class="map-result-one-type">'+v.type+'</div>';
+            //k += '<div class="map-result-one-phone">'+v.phone+'</div>';
+            k += '<div class="map-result-one-ratings">';
+            k += '<span class="ui_bubble_rating bubble_'+v.ratingTxt+'"></span><a href="javascript:productControlerObj.showInfoWindow(\''+v.id+'\','+v.latitude+','+v.longitude+',false)" target="_blank" class="more">'+v.totalReviews+' Reviews</a>';
+            k += '</div>';
+            k += '</div>';
+            k += '<div class="clearfix"></div>';
+            k += '</div>';
+            f.mapResults.append(k);
+        }
     }
     //});
     $('.map-result-one').each(function () {
-        $(this).mouseenter(function () {
+        /*$(this).mouseenter(function () {
             f.ProductMap.mouseHover($(this).attr('attr-marker-id'));
         });
         $(this).mouseleave(function () {
             f.ProductMap.mouseOut($(this).attr('attr-marker-id'));
-        });
+        });*/
         $(this).click(function () {
             f.ProductMap.showInfoWindow($(this).attr('attr-id'));
             f.ChangeUrlForNewContext();
@@ -1522,6 +1696,8 @@ ProductSearchControler.prototype.ChangeUrlForNewContext = function(e) {
     a += "&direction=" + ($input.direction.value != undefined ? $input.direction.value : '');
     a += "&location=" + ($input.location.value != undefined ? $input.location.value : '');
     a += "&location_radius=" + ($input.location_radius.value != undefined ? $input.location_radius.value : '');
+    a += "&lat=" + ($input.lat.value != undefined ? $input.lat.value : '');
+    a += "&lng=" + ($input.lng.value != undefined ? $input.lng.value : '');
     a += "&points=" + (this.ProductMap.isDrawing ? ($input.points.value != undefined ? $input.points.value : '') : '');
     a += "&zoom=" + this.ProductMap.getZoom();
     a += "&center=" + this.ProductMap.getCenter();
@@ -1627,6 +1803,13 @@ ResponsiveSidebar.prototype.render = function (isResizeSmaller = false, hideMapS
 }
 
 
+function gotoDiv (div) {
+    $('.popup-inner>div').animate({
+        scrollTop: $(div).offset().top
+    }, 800);
+}
+
+
 var markContext = "";
 var mapContext = {};
 var productControlerObj = null;
@@ -1659,6 +1842,8 @@ $(window).ready(function() {
             isShowUtil: markContext.getQueryHash('isShowUtil'),
             details: markContext.getQueryHash('details'),
             location: markContext.getQueryHash('location'),
+            lat: markContext.getQueryHash('lat'),
+            lng: markContext.getQueryHash('lng'),
             location_radius: markContext.getQueryHash('location_radius')
         };
     }

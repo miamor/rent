@@ -17,16 +17,16 @@
             <div class="col-md-7 no-padding">
                 <input class="form-control" type="text" id="location" name="location" placeholder="Nhập địa điểm (vd: Trường Đại học Kinh tế Quốc dân)"/>
                 <input class="hidden" type="text" id="location_id" name="location_id"/>
+                <input class="hidden" type="text" id="lat" name="lat"/>
+                <input class="hidden" type="text" id="lng" name="lng"/>
             </div>
             <div class="col-md-3 no-padding">
                 <select class="form-control" id="location_radius" name="location_radius">
-                  <option value="500">Chọn bán kính</option>
                   <option value="200">200 m</option>
-                  <option value="500">500 m</option>
+                  <option value="500" selected>500 m</option>
                   <option value="1000">1 km</option>
                   <option value="2000">2 km</option>
                   <option value="5000">5 km</option>
-                  <option value="10000">10 km</option>
                 </select>
             </div>
             <div class="col-md-2 no-padding">
@@ -37,35 +37,17 @@
 
         <div class="map-filters hide">
             <div class="form-group">
-                <div class="control-label col-md-4 no-padding">
-                    Loại BĐS
-                </div>
-                <div class="col-md-8 no-padding-right">
                     <select id="type" name="type" class="form-control">
-                        <option value="CN">Chọn loại bất động sản</option>
-                        <option value="chungcu">Chung cư</option>
-                        <optgroup label="Nhà bán">
-                            <option value="nharieng">Nhà riêng</option>
-                            <option value="bietthu">Biệt thự, liền kề</option>
-                            <option value="matpho">Nhà mặt phố</option>
-                        </optgroup>
-                        <optgroup label="Đất bán">
-                            <option value="datnen">Đất nền dự án</option>
-                            <option value="bandat">Bán đất</option>
-                        </optgroup>
-                        <option value="resort">Trang trại, khu nghỉ dưỡng</option>
+                        <option value="CN">Loại phòng trọ/nhà trọ</option>
+                        <option value="S">Phòng trọ</option>
+                        <option value="L1">Nhà thuê nguyên căn</option>
+                        <option value="L2">Thuê căn hộ</option>
                     </select>
-                </div>
-                <div class="clearfix"></div>
             </div>
 
             <div class="form-group">
-                <div class="control-label col-md-4 no-padding">
-                    Thành phố
-                </div>
-                <div class="col-md-8 no-padding-right">
                     <select id="city" name="city" class="form-control">
-                        <option value="CN">--Chọn Tỉnh/Thành phố--</option>
+                        <option value="CN">--Tỉnh/Thành phố--</option>
                         <option value="SG">Hồ Chí Minh</option>
                         <option value="HN">Hà Nội</option>
                         <option value="DDN">Đà Nẵng</option>
@@ -130,28 +112,16 @@
                         <option value="BK">Bắc Kạn</option>
                         <option value="CB">Cao Bằng</option>
                     </select>
-                </div>
-                <div class="clearfix"></div>
             </div>
             <div class="form-group">
-                <div class="control-label col-md-4 no-padding">
-                    Quận/Huyện
-                </div>
-                <div class="col-md-8 no-padding-right">
                     <select id="district" name="district" class="form-control">
-                        <option value="CN">--Chọn Quận/Huyện--</option>
+                        <option value="CN">--Quận/Huyện--</option>
                     </select>
-                </div>
-                <div class="clearfix"></div>
             </div>
 
             <div class="form-group">
-                <div class="control-label col-md-4 no-padding">
-                    Diện tích
-                </div>
-                <div class="col-md-8 no-padding-right">
                     <select id="area" name="area" class="form-control">
-                        <option value="CN">Chưa xác định</option>
+                        <option value="CN">Diện tích</option>
                         <option value="1"><= 30 m2</option>
                         <option value="2">30 - 50 m2</option>
                         <option value="3">50 - 80 m2</option>
@@ -163,32 +133,22 @@
                         <option value="9">300 - 500 m2</option>
                         <option value="10">>= 500 m2</option>
                     </select>
-                </div>
-                <div class="clearfix"></div>
             </div>
 
             <div class="form-group">
-                <!--<input id="price" type="text" name="price" value="1000;100000" data-type="double" data-step="1000" data-postfix=" &euro;" data-from="30000" data-to="90000" data-hasgrid="true"> -->
-                <div class="control-label col-md-4 no-padding">
-                    Giá tiền
-                </div>
-                <div class="col-md-8 no-padding-right">
                     <select name="price" id="price" class="form-control">
-                        <option value="CN">Thoả thuận</option>
-                        <option value="1">< 500 triệu</option>
-                        <option value="2">500 - 800 triệu</option>
-                        <option value="3">800 triệu - 1 tỷ</option>
-                        <option value="4">1 - 2 tỷ</option>
-                        <option value="5">2 - 3 tỷ</option>
-                        <option value="6">3 - 5 tỷ</option>
-                        <option value="7">5 - 7 tỷ</option>
-                        <option value="8">7 - 10 tỷ</option>
-                        <option value="9">10 - 20 tỷ</option>
-                        <option value="10">20 - 30 tỷ</option>
-                        <option value="11">> 30 tỷ</option>
+                        <option value="CN">Khoảng giá</option>
+                        <option value="1">< 1 triệu</option>
+                        <option value="2">1 - 2 triệu</option>
+                        <option value="3">2 - 5 triệu</option>
+                        <option value="4">5 - 7 triệu</option>
+                        <option value="5">7 - 10 triệu</option>
+                        <option value="6">10 - 20 triệu</option>
+                        <option value="7">20 - 30 triệu</option>
+                        <option value="8">30 - 50 triệu</option>
+                        <option value="9">50 - 100 triệu</option>
+                        <option value="10">> 100 triệu</option>
                     </select>
-                </div>
-                <div class="clearfix"></div>
             </div>
 
             <div class="txt-with-line center">
@@ -196,35 +156,19 @@
             </div>
 
             <div class="form-group">
-                <div class="control-label col-md-4 no-padding">
-                    Xã/phường
-                </div>
-                <div class="col-md-8 no-padding-right">
                     <select id="ward" name="ward" class="form-control">
-                        <option value="CN">--Chọn Phường/Xã--</option>
+                        <option value="CN">--Phường/Xã--</option>
                     </select>
-                </div>
-                <div class="clearfix"></div>
             </div>
             <div class="form-group">
-                <div class="control-label col-md-4 no-padding">
-                    Đường
-                </div>
-                <div class="col-md-8 no-padding-right">
                     <select id="street" name="street" class="form-control" placeholder="Đường">
-                        <option value="CN">--Chọn Đường/Phố--</option>
+                        <option value="CN">--Đường/Phố--</option>
                     </select>
-                </div>
-                <div class="clearfix"></div>
             </div>
 
             <div class="form-group">
-                <div class="control-label col-md-4 no-padding">
-                    Hướng
-                </div>
-                <div class="col-md-8 no-padding-right">
                     <select id="direction" name="direction" class="form-control">
-                        <option value="CN">Chọn hướng</option>
+                        <option value="CN">hướng</option>
                         <option value="e">Đông</option>
                         <option value="en">Đông Bắc</option>
                         <option value="es">Đông Nam</option>
@@ -232,8 +176,6 @@
                         <option value="wn">Tây Bắc</option>
                         <option value="ws">Tây Nam</option>
                     </select>
-                </div>
-                <div class="clearfix"></div>
             </div>
         </div>
 
@@ -336,7 +278,7 @@
                         <div class="controls-utility-toggle hidden"><i class="fa fa-angle-double-right"></i></div>
                         <div class="utility-head">Các loại tiện ích
                             <select id="cbbRadius">
-                              <option value="500">Chọn bán kính</option>
+                              <option value="500">bán kính</option>
                               <option value="200">200 m</option>
                               <option value="500">500 m</option>
                               <option value="1000">1 km</option>

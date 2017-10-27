@@ -12,7 +12,7 @@ function decode_utf8(s) {
 
 $(document).ready(function () {
     var phongtro = [];
-    $.get(MAIN_URL+'/utility_api/phongtro.json', function (data) {
+    $.get(MAIN_URL+'/utility_api/phongtro_L2.json', function (data) {
         data = decode_utf8(data);
         data = JSON.parse(data);
         $.each(data, function (i, v) {

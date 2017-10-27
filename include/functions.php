@@ -13,8 +13,8 @@ define('JS', ASSETS.'/dist/js');
 define('IMG', ASSETS.'/img');
 define('PLUGINS', ASSETS.'/plugins');
 
-define('GG_API_KEY', 'AIzaSyACkc-PYhlnPUWJaV2GlcCiEcuJujZsMdc');
-define('GG_CX_ID', '014962602028620469778:yf4br-mf6mk');
+//define('GG_API_KEY', 'AIzaSyB79RPTYTNyFtSlSCcyHOcjOHwI23lLJ18');
+define('GG_API_KEY', 'AIzaSyAxCGIxhHXTaKsMQ87R2yjYaA18tfHounQ');
 
 $__page = str_replace($__pattern.'/', '', $_SERVER['REQUEST_URI']);
 
