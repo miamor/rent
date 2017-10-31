@@ -11,6 +11,10 @@
             <input type="text" id="center" name="center" value=""/>
             <input type="text" id="points" name="points"/>
             <input type="text" id="details" name="details"/>
+            <input type="text" id="minLat" name="minLat"/>
+            <input type="text" id="minLng" name="minLng"/>
+            <input type="text" id="maxLat" name="maxLat"/>
+            <input type="text" id="maxLng" name="maxLng"/>
         </div>
 
         <div class="form-group map-search-form">
@@ -182,6 +186,7 @@
     </form>
 
 
+    <ul id="map_results_page" class="pagination"></ul>
     <div id="map_results"></div>
 
 
@@ -195,6 +200,11 @@
         <div class="iw-content map-item-info-details">
             <h4 class="map-item-info-title iw-title">Place title</h4>
             <div class="iw-subTitle"><i class="fa fa-map-marker"></i> <span class="map-item-info-address"></span></div>
+
+            <div class="btn-group map-item-info-buttons">
+                <a class=" map-item-view-utilities"><i class="fa fa-share-alt"></i> Tiện ích</a>
+                <a class=" map-item-gotoview"><i class="fa fa-feed"></i> Chi tiết</a>
+            </div>
 
             <div class="map-item-col">
                 <div class="ui_reviews map-side-left">
@@ -245,7 +255,7 @@
                             </ul>
                         </div>
                         <div class="clearfix"></div>
-                        <div class="subtitle">Mọi người nói về</div>
+                        <!--<div class="subtitle">Mọi người nói về</div>
                         <div class="keywords">
                             <div class="reviewKeyword">
                                 <div class="ui_avatar small">
@@ -266,7 +276,21 @@
                                 <a href="#REVIEWS" data-keyword="dog park">“dog park”</a> <span class="keywordCount">(6 reviews)</span>
                             </div>
                         </div>
+                        -->
                     </div>
+
+                    <div class="map-item-info-more">
+                        <div><i class="fa fa-bed"></i> Loại: <span class="map-item-info-type"></span> <a class="type-help" href="#"><i class="fa fa-question"></i></a></div>
+                        <div><i class="fa fa-circle-o"></i> Số phòng còn: <span class="map-item-info-room"></span></div>
+                        <div><i class="fa fa-phone"></i> Phone: <span class="map-item-info-contact_phone"></span></div>
+                        <a href="#" class="btn btn-danger order-room">Đặt phòng</a>
+                    </div>
+
+                    <div class="no-padding-left hidden">
+                        <div class="map-item-info-des"></div>
+                        <div class="iw-bottom-gradient"></div>
+                    </div>
+
                 </div>
 
                 <div class="map-side-right">
@@ -278,7 +302,7 @@
                         <div class="controls-utility-toggle hidden"><i class="fa fa-angle-double-right"></i></div>
                         <div class="utility-head">Các loại tiện ích
                             <select id="cbbRadius">
-                              <option value="500">bán kính</option>
+                              <option value="500">Chọn bán kính</option>
                               <option value="200">200 m</option>
                               <option value="500">500 m</option>
                               <option value="1000">1 km</option>
@@ -334,21 +358,6 @@
                 <div class="clearfix"></div>
             </div>
 
-            <div class="map-item-info-more">
-                <div class="btn-group-vertical map-item-info-buttons">
-                    <a class="btn btn-default map-item-view-utilities"><i class="fa fa-share-alt"></i> Tiện ích</a>
-                    <a class="btn btn-default map-item-gotoview"><i class="fa fa-feed"></i> Chi tiết</a>
-                </div>
-
-                <div><i class="fa fa-bed"></i> Loại: <span class="map-item-info-type"></span> <a class="type-help" href="#"><i class="fa fa-question"></i></a></div>
-                <div><i class="fa fa-circle-o"></i> Số phòng còn: <span class="map-item-info-room"></span></div>
-                <div><i class="fa fa-phone"></i> Phone: <span class="map-item-info-contact_phone"></span></div>
-            </div>
-
-            <div class="no-padding-left hidden">
-                <div class="map-item-info-des"></div>
-                <div class="iw-bottom-gradient"></div>
-            </div>
             <div class="clearfix"></div>
         </div>
     </div></div>
@@ -362,20 +371,10 @@
 </div>
 <div class="controls-area hide" id="controlArea">
     <div class="begindraw">
-        <img src="https://file4.batdongsan.com.vn/images/Product/Maps/icon-pen.png" width="16" title="Khoanh vùng" />
-        Vẽ để tìm
+        <i class="fa fa-pencil"></i> Vẽ để tìm
     </div>
     <div class="delshape">
-        <img src="https://file4.batdongsan.com.vn/images/Product/Maps/icon-delete.png" title="Xóa vùng đã khoanh" />
-        Xóa
-    </div>
-    <div class="fullscreen hidden">
-        <img src="https://file4.batdongsan.com.vn/images/Product/Maps/full-screen.png" title="Mở rộng toàn màn hình" />
-        Toàn màn hình
-    </div>
-    <div class="exitfullscreen hidden">
-        <img src="https://file4.batdongsan.com.vn/images/Product/Maps/exit-full-screen.png" title="Thoát chế độ rộng toàn màn hình" />
-        Mặc định
+        <i class="fa fa-times-circle"></i> Xóa
     </div>
 </div>
 <div class="search-result-map">

@@ -50,7 +50,7 @@ var iconMarker = {
     },
     select: {
         labelOrigin: labelPoint,
-        url: MAIN_URL+'/assets/img/marker5.png',
+        url: MAIN_URL+'/assets/img/marker.png',
         /*scaledSize: markerSize,
         size: markerSize,
         origin: markerOrigin,
@@ -97,7 +97,7 @@ var cityList = [];
         this.geocoder = new google.maps.Geocoder();
         this.circle = null;
         this.circleAroundSearchPoint = null;
-        this.currentPid = null;
+        this.currentPID = null;
         this.currentPjid = null;
         this.currentUid = null;
         this.BoxSearchPlace = null;
@@ -125,10 +125,12 @@ var cityList = [];
         this.infoWindow = new google.maps.InfoWindow();
         this.infoTipWindow = new google.maps.InfoWindow();
         this.selectedMarker = new google.maps.Marker({
-            icon: iconMarker.select
+            icon: iconMarker.select,
+            zIndex: 10
         });
 
         this.oms = null;
+        this.spidered = null;
 
         this.beginDrawButton = $('.' + o);
         this.deleteShapeButton = $('.' + p);
@@ -156,6 +158,10 @@ var cityList = [];
         this.input.lat = document.getElementById('lat');
         this.input.lng = document.getElementById('lng');
         this.input.location_radius = document.getElementById('location_radius');
+        this.input.minLat = document.getElementById('minLat');
+        this.input.minLng = document.getElementById('minLng');
+        this.input.maxLat = document.getElementById('maxLat');
+        this.input.maxLng = document.getElementById('maxLng');
 
         this.setContext = function(a, b, c) {
             if (a != undefined && a != '') {
@@ -213,9 +219,9 @@ var cityList = [];
             this.input.zoom.value = s.zoom;
             this.input.center.value = s.center;
             this.input.points.value = s.lstPoint;
-            this.input.product.value = s.currentPid;
+            this.input.product.value = s.currentPID;
 
-            this.currentPid = s.currentPid;
+            this.currentPID = s.currentPID;
 
             var cc = this.input.center.value.split(':');
             this.centerPos = new google.maps.LatLng(cc[0], cc[1]);
@@ -279,11 +285,34 @@ var cityList = [];
             };
             this.map = new google.maps.Map(document.getElementById(v), k);
 
-            this.oms = new OverlappingMarkerSpiderfier(this.map, {
-                markersWontMove: true,
-                markersWontHide: true,
-                basicFormatEvents: true
+            /*this.oms = new OverlappingMarkerSpiderfier(this.map, {
+                markersWontMove: false,
+                markersWontHide: false,
+                //basicFormatEvents: true
             });
+            /*
+            $thismap.map.addListener('idle', function() {
+                console.log('idlee~');
+                if (!$thismap.spidered) {
+                    $thismap.spidered = $thismap.oms.markersNearAnyOtherMarker();
+                    for (var i = 0; i < $thismap.spidered.length; i ++) {
+                        $thismap.spidered[i].setIcon(iconMarker.group);
+                    };
+                }
+            });
+
+            $thismap.oms.addListener('unspiderfy', function(markers) {
+                var spidered = markers;
+                for (var i = 0; i < spidered.length; i ++) {
+                    url = spidered[i].icon.url;
+                    // change it back
+                    //spidered[i].setIcon(iconMarker.default)
+                    //console.log('unspiderfy');
+                    spidered[i].setIcon(iconMarker.group)
+                    //spidered[i].setZIndex(1)
+                };
+            });
+            /*
             this.oms.addListener('format', function(marker, status) {
                 var micon = iconMarker.default;
                 if (status == OverlappingMarkerSpiderfier.markerStatus.SPIDERFIED) iconURL = iconMarker.default;
@@ -292,6 +321,7 @@ var cityList = [];
                 //console.log(OverlappingMarkerSpiderfier.markerStatus);
                 marker.setIcon(micon);
             });
+            */
 
             var styles = [{"featureType":"administrative","elementType":"geometry","stylers":[{"visibility":"off"}]},{"featureType":"poi","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","stylers":[{"visibility":"off"}]}];
             var styledMap = new google.maps.StyledMapType(styles, {name: "Styled Map"});
@@ -313,28 +343,51 @@ var cityList = [];
             this.autocomplete = new google.maps.places.Autocomplete(input, options);
             this.autocomplete.bindTo('bounds', this.map);
 
+            google.maps.event.addDomListener(input, 'keydown', function(event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                }
+            });
+
             this.autocomplete.addListener('place_changed', function() {
                 var place = $thismap.autocomplete.getPlace();
                 $thismap.searchByLocation(place);
+                //return false;
             });
-            if (s.location && (!s.lat || !s.lng)) {
-                var place = this.geocodeaddress();
-                $thismap.searchByLocation(place);
-            }
 
             var locationData = null;
             if (this.listLatlgn != null) {
                 this.polyline = new google.maps.Polygon({
                     path: this.listLatlgn,
-                    strokeColor: '#585858',
-                    strokeWeight: 3,
                     editable: true,
-                    fillColor: "#ccc",
-                    fillOpacity: 0.5
+                    strokeColor: '#08b0e4',
+                    strokeWeight: 1,
+                    fillColor: '#00c2ff',
+                    fillOpacity: 0.1
                 });
                 this.polyline.setMap(this.map);
                 this.findPoint(this.polyline);
+                this.catchChangePolyline();
+            } else if (s.location && (!s.lat || !s.lng)) {
+                var place = this.geocodeaddress();
+                $thismap.searchByLocation(place);
             }
+
+            //console.log(this.currentPID);
+        }
+
+        this.catchChangePolyline = function () {
+            google.maps.event.addListener($thismap.polyline.getPath(), 'set_at', function() {
+                console.log('set at');
+                $thismap.findPoint($thismap.polyline);
+                console.log($thismap.polyline.getPath());
+                console.log('~~~~~~');
+                //productControlerObj.ChangeUrlForNewContext();
+            });
+            google.maps.event.addListener($thismap.polyline.getPath(), 'insert_at', function() {
+                $thismap.findPoint($thismap.polyline);
+                //productControlerObj.ChangeUrlForNewContext();
+            })
         }
 
         this.searchByLocationId = function geocodePlaceid () {
@@ -373,7 +426,7 @@ var cityList = [];
 
         this.showSearchPoint = function () {
             $thismap.map.setCenter($thismap.pointPos);
-            $thismap.map.setZoom(zoom_moderate);
+            //$thismap.map.setZoom(zoom_moderate);
             $thismap.markerPoint.setPosition($thismap.pointPos);
             $thismap.markerPoint.setVisible(true);
 
@@ -381,9 +434,8 @@ var cityList = [];
                 this.circleAroundSearchPoint = new google.maps.Circle({
                     center: $thismap.pointPos,
                     radius: parseInt($thismap.pointRadius),
-                    strokeColor: '#00c2ff',
-                    strokeOpacity: 0.2,
-                    strokeWeight: 2,
+                    strokeColor: '#08b0e4',
+                    strokeWeight: 1,
                     fillColor: '#00c2ff',
                     fillOpacity: 0.1
                     //fillOpacity: 0.4
@@ -395,6 +447,15 @@ var cityList = [];
                 });
             }
             this.circleAroundSearchPoint.setMap(this.map);
+            var bounds = this.circleAroundSearchPoint.getBounds();
+            this.input.minLat.value = bounds.f.b;
+            this.input.minLng.value = bounds.b.b;
+            this.input.maxLat.value = bounds.f.f;
+            this.input.maxLng.value = bounds.b.f;
+
+            if (this.currentPID) {
+                this.markerPoint.setVisible(true);
+            }
         }
 
         this.searchByLocation = function (place) {
@@ -412,16 +473,17 @@ var cityList = [];
                 }
                 //$thismap.markerPoint.setPosition(place.geometry.location);
                 //$thismap.markerPoint.setVisible(true);
-                console.log(place);
+                //console.log(place);
 
                 $thismap.pointPos = place.geometry.location;
                 $thismap.input.lat.value = $thismap.pointPos.lat();
                 $thismap.input.lng.value = $thismap.pointPos.lng();
                 $thismap.pointRadius = $thismap.input.location_radius.value;
 
-                if (place.geometry.location != this.input.location.value) productControlerObj.ChangeUrlForNewContext();
+                //if (place.geometry.location != this.input.location.value) productControlerObj.ChangeUrlForNewContext();
 
-                this.showSearchPoint();
+                //this.showSearchPoint();
+                //productControlerObj._SearchAction();
             }
         }
 
@@ -434,8 +496,8 @@ var cityList = [];
         this.boundsChangeCallBack = function () {
             google.maps.event.addListener($thismap.map, 'bounds_changed', function () {
                 if ($thismap.isMapResize) {
-                    if ($thismap.currentPid) {
-                        var key = $thismap.findMarkerKey($thismap.currentPid);
+                    if ($thismap.currentPID) {
+                        var key = $thismap.findMarkerKey($thismap.currentPID);
                         if (key) {
                             $thismap.map.setCenter($thismap.markers[key].position);
                         }
@@ -448,22 +510,32 @@ var cityList = [];
         }
 
         this.beginDrawButton.bind('click', this, function(b) {
-            if (b.data.map.getZoom() < minZoomAllowSearch) {
+            /*if (b.data.map.getZoom() < minZoomAllowSearch) {
                 alert('Bạn cần phóng to bản đồ hơn nữa vào khu vực bạn cần vẽ');
                 return
+            }*/
+            $thismap.map.setZoom(zoom_moderate);
+            if ($thismap.currentPID) {
+                $thismap.selectedMarker.setVisible(false);
+                //this.closeInfoWindowCallBack();
+                $('.map-item-info-board-close').click();
+                //console.log('~~~');
             }
+            productControlerObj.clearResultsList();
+
             $thismap.isDrawing = true;
             //this.btnUpdateMapidleResult.hide();
             b.data.beginDrawButton.hide();
             b.data.deleteShapeButton.show();
             //b.data.ClearUtilitiesAroundPoint();
+            b.data.clearCenterPoint();
             b.data.clearPoint();
             b.data.callBackClearPointEvent();
             if (b.data.polyline != undefined) b.data.polyline.setMap(undefined);
             b.data.mapPoly = new google.maps.Polyline({
-                strokeColor: '#585858',
-                strokeOpacity: 1,
-                map: b.data.map
+                map: b.data.map,
+                strokeColor: '#08b0e4',
+                strokeWeight: 1,
             });
             b.data.map.setOptions({
                 draggableCursor: "crosshair",
@@ -542,6 +614,8 @@ var cityList = [];
 
             $thismap.isDrawing = false;
             this.isMapidle = false;
+
+            this.showSearchPoint();
             this.callBackClearPointEvent(true);
         };
         this.endDraw = function(a) {
@@ -574,25 +648,22 @@ var cityList = [];
 
                 $thismap.polyline = new google.maps.Polygon({
                     path: b,
-                    strokeColor: '#585858',
-                    strokeWeight: 3,
+                    /*strokeColor: '#ee5040',
+                    strokeWeight: 1,
+                    fillColor: "#f16052",
+                    fillOpacity: 0.2*/
                     editable: true,
-                    fillColor: "#ccc",
-                    fillOpacity: 0.5
+                    strokeColor: '#08b0e4',
+                    strokeWeight: 1,
+                    fillColor: '#00c2ff',
+                    fillOpacity: 0.1
                 });
                 $thismap.polyline.setMap($thismap.map);
                 $thismap.findPoint($thismap.polyline);
+                this.catchChangePolyline();
+                //$thismap.map.setZoom(zoom_moderate);
 
                 //this.btnUpdateMapidleResult.hide();
-
-                google.maps.event.addListener($thismap.polyline.getPath(), 'set_at', function() {
-                    console.log('set_at polyline');
-                    $thismap.findPoint($thismap.polyline)
-                });
-                google.maps.event.addListener($thismap.polyline.getPath(), 'insert_at', function() {
-                    console.log('insert_at polyline');
-                    $thismap.findPoint($thismap.polyline)
-                })
             }
             this.listLatlgn = null
         };
@@ -636,8 +707,22 @@ var cityList = [];
             }
             return true
         };
+        this.clearCenterPoint = function () {
+            if (this.circleAroundSearchPoint) {
+                this.circleAroundSearchPoint.setMap(null);
+                this.markerPoint.setVisible(false);
+                /*this.input.minLat.value = null;
+                this.input.minLng.value = null;
+                this.input.maxLat.value = null;
+                this.input.maxLng.value = null;
+                this.input.lat.value = '';
+                this.input.lng.value = '';*
+                this.input.location.value = '';*/
+                productControlerObj.ChangeUrlForNewContext();
+            }
+        }
         this.clearPoint = function() {
-            if (this.infoWindow) this.infoWindow.close();
+            //if (this.infoWindow) this.infoWindow.close();
             this.ClearUtilitiesAroundPoint();
 
             if (this.markers != undefined) {
@@ -645,6 +730,9 @@ var cityList = [];
                     this.markers[t].setMap(null)
                 }
                 this.markers = []
+            }
+            if ($thismap.spidered) {
+                $thismap.spidered = null;
             }
             if (this.markerCluster != null) {
                 this.markerCluster.clearMarkers()
@@ -664,7 +752,6 @@ var cityList = [];
                 }
             } else if (this.pointPos && this.pointRadius) {
                 //console.log(a);
-                this.showSearchPoint();
                 for (var i = 0; i < a.length; i++) {
                     var e = parseInt(google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(a[i].latitude, a[i].longitude), $thismap.pointPos));
                     if (e <= $thismap.pointRadius) {
@@ -685,7 +772,7 @@ var cityList = [];
             $thismap.markers = a.map(function(location, i) {
                 return new google.maps.Marker({
                     position: new google.maps.LatLng(location.latitude, location.longitude),
-                    //icon: iconMarker.default,
+                    icon: iconMarker.default,
                     labelContent: location.type,
                     labelAnchor: new google.maps.Point(6,14),
                     labelClass: "marker-label", // your desired CSS class
@@ -697,72 +784,41 @@ var cityList = [];
                 //if ($thismap.map.getZoom() >= 12)
                 //oneMarker.setMap($thismap.map);
 
-                $thismap.oms.addMarker(oneMarker);
+                //$thismap.oms.addMarker(oneMarker);
 
                 oneMarker.id = a[i].id;
 
-                google.maps.event.addListener(oneMarker, 'spider_click', function(e) {  // 'spider_click', not plain 'click'
+                //google.maps.event.addListener(oneMarker, 'spider_click', function(e) {  // 'spider_click', not plain 'click'
+                google.maps.event.addListener(oneMarker, 'click', function(e) {  // 'spider_click', not plain 'click'
                     $thismap.showInfoWindow(this.id);
                     if ($thismap.isShowUtil) {
-                        productControlerObj.ShowMoreInfo($thismap.currentPid, oneMarker.position.lat(), oneMarker.position.lng())
+                        productControlerObj.ShowMoreInfo($thismap.currentPID, oneMarker.position.lat(), oneMarker.position.lng())
                     }
                     $thismap.input.product.value = this.id;
                     productControlerObj.ChangeUrlForNewContext();
                 });
-                /*
-                /*oneMarker.addListener('click', function() {
-                    $thismap.showInfoWindow(this.id);
-                    if ($thismap.isShowUtil) {
-                        productControlerObj.ShowMoreInfo($thismap.currentPid, oneMarker.position.lat(), oneMarker.position.lng())
-                    }
-                    $thismap.input.product.value = this.id;
-                    productControlerObj.ChangeUrlForNewContext();
-                });
-                /*oneMarker.addListener('mouseover', function() {
-                    if (this.id != $thismap.currentPid) {
-                        this.setIcon(iconMarker.hover)
-                    }
-                });
+
                 oneMarker.addListener('mouseout', function() {
-                    if (this.id != $thismap.currentPid) {
-                        this.setIcon(iconMarker.default)
-                    }
-                })*/
-            })
-
-            $thismap.map.addListener('idle', function() {
-                // change spiderable markers to plus sign markers
-                // we are lucky here in that initial map is completely clustered
-                // for there is no init listener in oms :(
-                // so we swap on the first zoom/idle
-                // and subsequently any other zoom/idle
-                var spidered = $thismap.oms.markersNearAnyOtherMarker();
-                for (var i = 0; i < spidered.length; i ++) {
-                    // this was set when we created the markers
-                    spidered[i].setIcon(iconMarker.group);
-                    // code to manipulate your spidered icon url
-                };
-
+                    $thismap.selectedMarker.setZIndex(999);
+                })
             });
 
-            $thismap.oms.addListener('unspiderfy', function(markers) {
-                var spidered = markers;
-                for (var i = 0; i < spidered.length; i ++) {
-                    url = spidered[i].icon.url;
-                    // change it back
-                    //spidered[i].setIcon(iconMarker.default)
-                    spidered[i].setIcon(iconMarker.group)
-                    //spidered[i].setZIndex(1)
-                };
-            });
+            /*google.maps.event.addDomListener($thismap.map, 'idle', function(event) {
+                if (!$thismap.spidered) {
+                    $thismap.spidered = $thismap.oms.markersNearAnyOtherMarker();
+                    for (var i = 0; i < $thismap.spidered.length; i ++) {
+                        $thismap.spidered[i].setIcon(iconMarker.group);
+                    };
+                }
+            });*/
 
-            $thismap.oms.addListener('click', function(marker) {
+            /*
+            $thismap.oms.addListener('click', function(oneMarker) {
                 // put the clicked-on marker on top
                 // when oms un-spiders
-                $thismap.selectedMarker.setPosition(marker.position);
-                $thismap.selectedMarker.setMap($thismap.map);
                 //marker.setIcon(iconMarker.select);
             });
+            */
 
             if (b !== undefined && b) {
                 if (this.polyline != undefined && this.polyline != null) {
@@ -774,13 +830,46 @@ var cityList = [];
                 }
             }
 
-            if (this.currentPid) {
-                this.showInfoWindow(this.currentPid, true);
+            //console.log(this.currentPID);
+            if (this.currentPID) {
+                this.showInfoWindow(this.currentPID, true);
+            }
+            //google.maps.event.trigger($thismap.map, 'idle');
+
+            if ($thismap.map.getZoom() >= 17) {
+                $.each($thismap.markers, function (i, oneMarker) {
+                    oneMarker.setMap($thismap.map);
+                })
+            } else {
+                $thismap.markerCluster = new MarkerClusterer($thismap.map, $thismap.markers, {
+                    imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+                });
             }
 
-            /*$thismap.markerCluster = new MarkerClusterer($thismap.map, $thismap.markers, {
-                imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-            });*/
+            $thismap.map.addListener('zoom_changed', function() {
+                console.log($thismap.map.getZoom());
+                if ($thismap.map.getZoom() >= 17) {
+                    console.log()
+                    if ($thismap.markerCluster) {
+                        $thismap.markerCluster.clearMarkers();
+                        $thismap.markerCluster = null;
+                        $.each($thismap.markers, function (i, oneMarker) {
+                            oneMarker.setMap($thismap.map);
+                        })
+                    }
+                } else {
+                    $.each($thismap.markers, function (i, oneMarker) {
+                        oneMarker.setMap(null);
+                    })
+                    if (!$thismap.markerCluster) {
+                        $thismap.markerCluster = new MarkerClusterer($thismap.map, $thismap.markers, {
+                            imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+                        });
+                    }
+                }
+                //google.maps.event.trigger($thismap.map, 'idle');
+            });
+
 
             //if (!this.isShowUtil) this.ShowUtilitiesAll();
         };
@@ -889,7 +978,7 @@ var cityList = [];
             //$thismap.btnUpdateMapidleResult.hide();
             $thismap.map.setZoom(zoom_utilityView);
 
-            var h = this.findMarker(this.currentPid);
+            var h = this.findMarker(this.currentPID);
 
             if (h == undefined || h == null) return;
             //h.setIcon(iconMarker.select);
@@ -976,12 +1065,13 @@ var cityList = [];
             //h.setIcon(iconMarker.default);
             $thismap.selectedMarker.setPosition(null);
 
-            this.input.product.value = this.currentPid = '';
+            this.input.product.value = this.currentPID = '';
             this.map.setZoom(zoom_moderate);
             this.map.setCenter($thismap.pointPos);
             this.ClearUtilitiesAroundPoint();
             productControlerObj.ChangeUrlForNewContext();
             //this.ShowUtilitiesAll();
+            $('#map_results_page').show();
         };
 
         this.showInfoTipWindow = function (h, k) {
@@ -999,8 +1089,8 @@ var cityList = [];
         this.mouseHover = function (k) {
             if (this.markers) {
                 var currentMarkerKey = null;
-                if ($thismap.currentPid) {
-                    currentMarkerKey = this.findMarkerKey($thismap.currentPid);
+                if ($thismap.currentPID) {
+                    currentMarkerKey = this.findMarkerKey($thismap.currentPID);
                 }
                 $.each(this.markers, function (i, v) {
                     if (i == k) {
@@ -1008,8 +1098,8 @@ var cityList = [];
                         $thismap.map.setCenter(v.position);
                         $thismap.showInfoTipWindow(v, $('.map-result-one[attr-marker-id="'+i+'"]').html());
                         /*
-                        if ($thismap.currentPid == i) $thismap.infoWindow.close();
-                        if ($thismap.currentPid == i) $thismap.infoWindow.open($thismap.map, v); */
+                        if ($thismap.currentPID == i) $thismap.infoWindow.close();
+                        if ($thismap.currentPID == i) $thismap.infoWindow.open($thismap.map, v); */
                     } else if (i != currentMarkerKey) {
                         v.setIcon(iconMarker.default);
                     }
@@ -1021,8 +1111,8 @@ var cityList = [];
             if (this.markers) {
                 var currentMarkerKey = null;
                 this.markers[k].setIcon(iconMarker.default);
-                if ($thismap.currentPid) {
-                    currentMarkerKey = this.findMarkerKey($thismap.currentPid);
+                if ($thismap.currentPID) {
+                    currentMarkerKey = this.findMarkerKey($thismap.currentPID);
                     $thismap.map.setCenter(this.markers[currentMarkerKey].position);
                     if (currentMarkerKey == k) {
                         this.markers[currentMarkerKey].setIcon(iconMarker.select);
@@ -1038,16 +1128,16 @@ var cityList = [];
             var key = null;
 
             var runSet = false;
-            if (!isInit && d != this.currentPid) runSet = true;
+            if (!isInit && d != this.currentPID) runSet = true;
 
             if (d == undefined || d == null) {
-                d = this.currentPid;
-            } else if (d != this.currentPid && this.currentPid != null) {
-                var t = this.findMarkerKey(this.currentPid);
+                d = this.currentPID;
+            } else if (d != this.currentPID && this.currentPID != null) {
+                var t = this.findMarkerKey(this.currentPID);
                 var u = this.markers[t];
 
-                this.input.product.value = this.currentPid = d;
-                key = this.findMarkerKey(this.currentPid);
+                this.input.product.value = this.currentPID = d;
+                key = this.findMarkerKey(this.currentPID);
                 var e = this.markers[key];
                 var f = this.findDataInfo(key);
                 data = f;
@@ -1057,7 +1147,7 @@ var cityList = [];
                         u.setZIndex(6 - f.vip)
                     }
                 }
-            } else if (d == this.currentPid) {}
+            } else if (d == this.currentPID) {}
             this.input.product.value = d;
 
             if (this.markers != undefined) {
@@ -1077,16 +1167,23 @@ var cityList = [];
                 }
                 //h.setIcon(iconMarker.select);
 
-                $thismap.selectedMarker.setPosition(h.position);
-                $thismap.selectedMarker.setZIndex(999);
                 $thismap.selectedMarker.setMap($thismap.map);
-                //console.log('selectedMarker');
+                $thismap.selectedMarker.setPosition(h.position);
+                $thismap.selectedMarker.setZIndex(9999);
+                $thismap.selectedMarker.setVisible(true);
+
+                /*$thismap.selectedMarker.setPosition(h.position);
+                $thismap.selectedMarker.setMap($thismap.map);
+                */
+                //console.log($thismap.selectedMarker);
 
                 $thismap.map.setCenter(h.position);
-                $thismap.map.setZoom(zoom_markerView);
+                if ($thismap.map.getZoom() < zoom_markerView) {
+                    $thismap.map.setZoom(zoom_markerView);
+                }
 
                 //h.setZIndex(300);
-                this.currentPid = data.id;
+                this.currentPID = data.id;
 
                 if (isInit && this.input.isShowUtil.value == 1) this.isShowUtil = true;
 
@@ -1096,7 +1193,7 @@ var cityList = [];
                 }
                 //if (isInit) {
                     if (this.isDetails) {
-                        productControlerObj.ShowDetails(this.currentPid);
+                        productControlerObj.ShowDetails(this.currentPID);
                     }
                 //}
 
@@ -1137,6 +1234,8 @@ var cityList = [];
                 google.maps.event.addListener(this.infoWindow, 'closeclick', function () {
                     $thismap.closeInfoWindowCallBack(h);
                 }); */
+
+                $('#map_results_page').hide();
             }
         };
 
@@ -1154,11 +1253,15 @@ var cityList = [];
         }
 
         this.ShowRatings = function (data) {
-            if (!data.rating) {
+            /*if (!data.rating) {
                 $('.ui_reviews').html('<div class="no-reviews-found">Chưa có đánh giá nào. <a href="javascript:productControlerObj.ShowDetails(\''+data.id+'\')" class="more">Thêm đánh giá</a></div>');
-            } else {
+            } else {*/
+            if (!data.rating) data.rating = 0;
+            if (!data.totalReviews) data.totalReviews = 0;
+                data.ratingText = data.rating.toString();
+                if (data.rating != Math.round(data.rating)) data.ratingText = data.ratingText.replace('.', '');
                 $('#overallRating').html(data.rating);
-                $('.overallBubbleRating .ui_star_rating').addClass('star_'+data.rating.toString().replace('.', ''));
+                $('.overallBubbleRating .ui_star_rating').addClass('star_'+data.ratingText);
                 $('#totalReviews').html(data.totalReviews);
                 if (data.totalReviews) {
                     var reviewsSta = data.reviews_details.split('|');
@@ -1172,6 +1275,7 @@ var cityList = [];
                     }
                 }
 
+            if (data.totalReviews > 0) {
                 // get reviews
                 if (!$('.map-item-reviews-list').find('.map-item-review').length) {
                     $.get(MAIN_URL+'/api/node_one_reviews_map.php', function (reviews) {
@@ -1320,6 +1424,7 @@ ProductSearchControler = function(h) {
     this.formSearch = $('#map-search-form');
     this.postData = null;
     this.mapResults = $('#map_results');
+    this.mapResultsPage = $('#map_results_page');
 
     this.ProductMap = $('#map').ProductMap('begindraw', 'delshape', 'fullscreen', 'exitfullscreen', mapContext);
 
@@ -1328,7 +1433,6 @@ ProductSearchControler = function(h) {
 
     this.ProductMap.callBackMapChange = function(a) {
         i.ChangeUrlForNewContext();
-        //i._SearchAction();
     };
     this.ProductMap.callBackClearPointEvent = function(a) {
         i.ChangeUrlForNewContext();
@@ -1342,48 +1446,66 @@ ProductSearchControler = function(h) {
 
     this.ProductMap.initialize();
 
-    if (!this.ProductMap.isDrawing && this.formSearch.find('#location').value && this.formSearch.find('#lat').value && this.formSearch.find('#lng').value) {
-        this._SearchAction();
-    }
-    this.formSearch.submit(function () {
-        i.ProductMap.currentPid = i.ProductMap.input.product.value = "";
-        i.ChangeUrlForNewContext();
-        i.ProductMap.pointRadius = i.formSearch.find('#location_radius').val();
-        i._SearchAction();
-        return false
-    });
-    this.catchInputChange();
-
     var context = h.context;
-    if (!context.city && !context.currentPid) {
+    if (!context.city && !context.currentPID) {
         this.beginScreen();
         //this.showCitySearch();
     } else {
         this.loadMapScreen();
-
         if (!context.district) {
             c_city = context.city;
             i.changeCityCallback();
         }
     }
+
+    /*if (!this.ProductMap.isDrawing && this.formSearch.find('#location').value && this.formSearch.find('#lat').value && this.formSearch.find('#lng').value) {
+        this._SearchAction();
+    }*/
+    this.formSearch.submit(function (e) {
+        e.preventDefault();
+        i.ProductMap.currentPID = i.ProductMap.input.product.value = "";
+        i.ChangeUrlForNewContext();
+        i.ProductMap.pointRadius = i.formSearch.find('#location_radius').val();
+        i.ProductMap.showSearchPoint();
+        i._SearchAction();
+        //return false
+    });
+    this.catchInputChange();
+
+    this.orderRoom();
 };
 
 ProductSearchControler.prototype.loadMapScreen = function () {
     $('main').removeClass('beginScreen');
-    //console.log(mapContext);
+    //console.log('~~ '+mapContext.lstPoint);
 
-    this.ProductMap.input.lat.value = mapContext.lat;
-    this.ProductMap.input.lng.value = mapContext.lng
-    this.ProductMap.input.location_radius.value = mapContext.location_radius;
+    if (mapContext.location && mapContext.lat && mapContext.lng) {
+        this.ProductMap.input.lat.value = mapContext.lat;
+        this.ProductMap.input.lng.value = mapContext.lng
+        this.ProductMap.input.location_radius.value = mapContext.location_radius;
 
-    this.ProductMap.pointPos = new google.maps.LatLng(mapContext.lat, mapContext.lng);
-    this.ProductMap.pointRadius = mapContext.location_radius;
-
-    this._SearchAction();
+        this.ProductMap.pointPos = new google.maps.LatLng(mapContext.lat, mapContext.lng);
+        this.ProductMap.pointRadius = mapContext.location_radius;
+    }
+    if (mapContext.lstPoint) {
+        if (this.ProductMap.circleAroundSearchPoint) {
+            this.ProductMap.circleAroundSearchPoint.setMap(null);
+        }
+        if (this.ProductMap.markerPoint) {
+            this.ProductMap.markerPoint.setVisible(false);
+        }
+    } else if (mapContext.location && mapContext.lat && mapContext.lng) {
+        this.ProductMap.showSearchPoint();
+        this._SearchAction();
+    }
 }
 
 ProductSearchControler.prototype.beginScreen = function () {
     $('main').addClass('beginScreen');
+}
+
+ProductSearchControler.prototype.clearResultsList = function () {
+    $('#map_results').html('');
 }
 
 ProductSearchControler.prototype.showCitySearch = function () {
@@ -1544,10 +1666,11 @@ ProductSearchControler.prototype.ShowDetails = function (id) {
             if (ti == 0) cls = ' active';
             $('.v-place-thumbs').append('<img class="v-place-thumb'+cls+'" src="'+tv+'"/>')
         });
-        if (place.totalReviews > 0)
+        //if (place.totalReviews > 0)
             $('.v-place-ratings').html($('.ui_reviews').html());
-        else
+        /*else
             $('.v-place-view-more .v-place-ratings').html('<div class="no-reviews-found">Chưa có đánh giá nào. <a href="javascript:gotoDiv(\'.v-place-write-review\')">Thêm đánh giá</a></div>');
+        */
 
         popup($('#v-place-view').html(), true);
 
@@ -1579,64 +1702,104 @@ ProductSearchControler.prototype.writeReview = function (id) {
     rate('#writeReview');
 }
 
-ProductSearchControler.prototype._SearchAction = function(d) {
-    if (!d) {
-        d = JSON.parse(JSON.stringify(this.formSearch.serializeArray()));
-        d.filter = 0;
-        d.sort = 0;
-        d.v = new Date().getTime();
-        this.searchVar = d;
-        var f = this;
-        //console.log(d);
-        $.ajax({
-            url: API_URL+'/nodes',
-            type: 'get',
-            success: function(data) {
-                // show on map
-                if ($('main').is('.beginScreen')) $('main').removeClass('beginScreen');
-                f.tempProductData = f.productData = f.ProductMap.showMap(data, d.isSearchForm);
-            },
-            error: function(a, b, c) {
-                console.log(a+' ~ '+b+' ~ '+c)
-            }
-        });
+ProductSearchControler.prototype._SearchAction = function(g) {
+    var f = this;
+    e = this.formSearch.serialize().split('&');
+    var d = {};
+    d.filter = 0;
+    d.sort = 0;
+    d.v = new Date().getTime();
+
+    if (this.ProductMap.isDrawing) {
+        for (var key in g) d[key] = g[key];
+        //d = Object.assign({}, e, g);
+    } else if (this.ProductMap.pointPos && this.ProductMap.pointRadius && this.ProductMap.input.lat.value && this.ProductMap.input.lng.value) {
+        //d = JSON.parse(JSON.stringify(this.formSearch.serializeArray()), true);
+        $.each(e, function (i, v) {
+            vk = v.split('=')[0];
+            vl = v.split('=')[1];
+            d[vk] = vl;
+        })
+        var lat = parseFloat(d.lat);
+        var lng = parseFloat(d.lng);
+        var radius = parseFloat(d.location_radius);
     }
+
+    this.searchVar = d;
+    console.log(d);
+    console.log(API_URL+'/nodes?minLat='+d.minLat+'&minLng='+d.minLng+'&maxLat='+d.maxLat+'&maxLng='+d.maxLng);
+
+    //f.ChangeUrlForNewContext();
+
+    $.ajax({
+        url: API_URL+'/nodes?minLat='+d.minLat+'&minLng='+d.minLng+'&maxLat='+d.maxLat+'&maxLng='+d.maxLng,
+        type: 'get',
+        success: function(data) {
+            // show on map
+            if ($('main').is('.beginScreen')) {
+                $('main').removeClass('beginScreen');
+                responsiveDesign.render(false, false);
+                f.ProductMap.resize();
+            }
+            f.tempProductData = f.productData = f.ProductMap.showMap(data, d.isSearchForm);
+        },
+        error: function(a, b, c) {
+            console.log(a+' ~ '+b+' ~ '+c)
+        }
+    });
 };
+
+ProductSearchControler.prototype.toPage = function (p) {
+    var f = this;
+    f.mapResultsPage.find('li').removeClass('active');
+    f.mapResultsPage.find('li[attr-p="'+p+'"]').addClass('active');
+    f.mapResults.find('.map-result-onePage').hide();
+    f.mapResults.find('.map-result-onePage#p'+p).show();
+}
 
 ProductSearchControler.prototype.showList = function (d) {
     var f = this;
     f.mapResults.html('');
     //$.each(d, function (i, v) {
-    for (i = 0; i < 10; i++) {
-        if (d[i]) {
-            var v = d[i];
-            if (!v.rating) v.ratingTxt = '0';
-            else {
-                v.ratingTxt = v.rating.toString();
-                if (v.rating != round(v.rating)) v.ratingTxt = v.ratingTxt.replace('.', '');
+    var postPerPage = 5;
+    var page = d.length/postPerPage;
+    var k = z = '';
+    for (p = 1; p <= page; p++) {
+        z += '<li class="paginate_button" attr-p="'+p+'"><a href="javascript:productControlerObj.toPage('+p+')">'+p+'</a></li>';
+        k += '<div class="map-result-onePage hide" id="p'+p+'">';
+        for (i = (p-1)*postPerPage; i < p*postPerPage; i++) {
+            if (d[i]) {
+                var v = d[i];
+                if (!v.rating) v.ratingTxt = '0';
+                else {
+                    v.ratingTxt = v.rating.toString();
+                    if (v.rating != round(v.rating)) v.ratingTxt = v.ratingTxt.replace('.', '');
+                }
+                if (!v.totalReviews) v.totalReviews = 0;
+                k += '<div attr-id="'+v.id+'" attr-marker-id="'+i+'" class="map-result-one">';
+                k += '<div class="map-result-one-left no-padding">'
+                k += '<img class="map-result-one-thumb" src="'+v.avatar+'">';
+                k += '<div class="map-result-one-price"><i class="fa fa-dollar"></i><span>'+v.price.replace('/tháng','')+'</span></div>';
+                k += '</div>';
+                k += '<div class="map-result-one-info">'
+                k += '<h3 class="map-result-one-title">'+v.title+'</h3>';
+                //k += '<div class="map-result-one-des">'+v.details+'</div>';
+                k += '<div class="map-result-one-adr"><i class="fa fa-map-marker"></i> '+v.address+'</div>';
+                //k += '<div class="map-result-one-type">'+v.type+'</div>';
+                //k += '<div class="map-result-one-phone">'+v.phone+'</div>';
+                k += '<div class="map-result-one-ratings">';
+                k += '<span class="ui_bubble_rating bubble_'+v.ratingTxt+'"></span><a href="javascript:productControlerObj.showInfoWindow(\''+v.id+'\','+v.latitude+','+v.longitude+',false)" target="_blank" class="more">'+v.totalReviews+' Reviews</a>';
+                k += '</div>';
+                k += '</div>';
+                k += '<div class="clearfix"></div>';
+                k += '</div>';
             }
-            if (!v.totalReviews) v.totalReviews = 0;
-            k = '<div attr-id="'+v.id+'" attr-marker-id="'+i+'" class="map-result-one">';
-            k += '<div class="map-result-one-left no-padding">'
-            k += '<img class="map-result-one-thumb" src="'+v.avatar+'">';
-            k += '<div class="map-result-one-price"><i class="fa fa-dollar"></i><span>'+v.price.replace('/tháng','')+'</span></div>';
-            k += '</div>';
-            k += '<div class="map-result-one-info">'
-            k += '<h3 class="map-result-one-title">'+v.title+'</h3>';
-            //k += '<div class="map-result-one-des">'+v.details+'</div>';
-            k += '<div class="map-result-one-adr"><i class="fa fa-map-marker"></i> '+v.address+'</div>';
-            //k += '<div class="map-result-one-type">'+v.type+'</div>';
-            //k += '<div class="map-result-one-phone">'+v.phone+'</div>';
-            k += '<div class="map-result-one-ratings">';
-            k += '<span class="ui_bubble_rating bubble_'+v.ratingTxt+'"></span><a href="javascript:productControlerObj.showInfoWindow(\''+v.id+'\','+v.latitude+','+v.longitude+',false)" target="_blank" class="more">'+v.totalReviews+' Reviews</a>';
-            k += '</div>';
-            k += '</div>';
-            k += '<div class="clearfix"></div>';
-            k += '</div>';
-            f.mapResults.append(k);
         }
+        k += '</div>'
     }
-    //});
+    f.mapResultsPage.html(z);
+    f.mapResults.append(k);
+    f.toPage(1);
     $('.map-result-one').each(function () {
         /*$(this).mouseenter(function () {
             f.ProductMap.mouseHover($(this).attr('attr-marker-id'));
@@ -1654,24 +1817,15 @@ ProductSearchControler.prototype.showList = function (d) {
 ProductSearchControler.prototype.callBackDrawEvent = function(a, b, c, d, e, f) {
     this.lstPoint = this.ProductMap.input.points.value;
     if (this.lstPoint != null && this.lstPoint.length > 0) {
-        var g = JSON.parse(JSON.stringify(this.formSearch.serializeArray()));
-        /*
-        g.ptype = $('.product-form > .tab > .active').attr('cateid');
-        g.cate = this.hdbProductType.getValue();ow
-        g.area = this.hdbAreaLevel.getValue();
-        g.price = this.hdbPriceLevel.getValue();
-        g.room = this.hdbRoomLevel.getValue();
-        g.direct = this.hdbDirection.getValue();
-        g.startdate = '';
-        g.enddate = '';
-        */
+        //var g = JSON.parse(JSON.stringify(this.formSearch.serializeArray()));
+        var g = {};
         g.lstPoint = this.lstPoint;
         g.isSearchForm = false;
         g.isPageLoad = false;
-        g.minlat = b;
-        g.minlong = c;
-        g.maxlat = d;
-        g.maxlong = e;
+        g.minLat = b;
+        g.minLng = c;
+        g.maxLat = d;
+        g.maxLng = e;
         g.m = "shape";
         if (f != undefined) {
             g.cpid = f.cpid;
@@ -1701,12 +1855,19 @@ ProductSearchControler.prototype.ChangeUrlForNewContext = function(e) {
     a += "&points=" + (this.ProductMap.isDrawing ? ($input.points.value != undefined ? $input.points.value : '') : '');
     a += "&zoom=" + this.ProductMap.getZoom();
     a += "&center=" + this.ProductMap.getCenter();
-    a += "&product=" + (this.ProductMap.currentPid != undefined && this.ProductMap.currentPid != null ? this.ProductMap.currentPid : '');
-    a += "&isShowUtil=" + (this.ProductMap.isShowUtil && this.ProductMap.currentPid != undefined && this.ProductMap.currentPid != null ? 1 : 0);
+    a += "&product=" + (this.ProductMap.currentPID != undefined && this.ProductMap.currentPID != null ? this.ProductMap.currentPID : '');
+    a += "&isShowUtil=" + (this.ProductMap.isShowUtil && this.ProductMap.currentPID != undefined && this.ProductMap.currentPID != null ? 1 : 0);
     a += "&details=" + (this.ProductMap.isDetails ? 1 : 0);
     window.location.href = window.location.pathname + '#' + a;
     //console.log('ChangeUrlForNewContext: '+window.location.pathname + '#' + a);
 };
+
+ProductSearchControler.prototype.orderRoom = function () {
+    $('.order-room').click(function () {
+        console.log('order-room');
+        return false
+    })
+}
 
 
 var oldWidth = $(window).width();
@@ -1727,12 +1888,14 @@ ResponsiveSidebar = function () {
     $('.map-side-toggle').click(function () {
         var currentlyHide = true;
         if ($('.map-side').css('left') == '0px') currentlyHide = false; // is show
+        console.log($('.map-side').css('left'));
         res.render(false, !currentlyHide);
         productControlerObj.ProductMap.resize();
     });
 }
 ResponsiveSidebar.prototype.initialize = function () {
     var cHide = false;
+    var res = this;
     if ($(window).width() < 1200) cHide = true;
     this.render(false, cHide);
 }
@@ -1740,7 +1903,7 @@ ResponsiveSidebar.prototype.render = function (isResizeSmaller = false, hideMapS
     var w = $(window).width();
     var h = $(window).height();
 
-    var mapSideWidth = '40%';
+    var mapSideWidth = 0.4*$(window).width();
 
     if (w <= 900) mapSideWidth = 500;
     if (w <= 360) mapSideWidth = w;
@@ -1838,7 +2001,7 @@ $(window).ready(function() {
             lstPoint: markContext.getQueryHash('points'),
             zoom: markContext.getQueryHash('zoom', zoom_moderate),
             center: markContext.getQueryHash('center'),
-            currentPid: markContext.getQueryHash('product'),
+            currentPID: markContext.getQueryHash('product'),
             isShowUtil: markContext.getQueryHash('isShowUtil'),
             details: markContext.getQueryHash('details'),
             location: markContext.getQueryHash('location'),
@@ -1866,7 +2029,7 @@ $(window).ready(function() {
     $('.map-filters').width($('.map-search-form>div:eq(0)').width()-22);
 
     $(document).mouseup(function (e) {
-        var container = $(".map-filters,#location,#map-search-form");
+        var container = $(".map-filters,#location");
         // if the target of the click isn't the container nor a descendant of the container
         if (!container.is(e.target) && container.has(e.target).length === 0) {
             $('#map-search-form').removeClass('active');
